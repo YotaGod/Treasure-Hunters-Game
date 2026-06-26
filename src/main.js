@@ -175,6 +175,87 @@ class UIScene extends Phaser.Scene {
                 ease: 'Back.easeOut'
             });
         });
+
+        // --- MOBILE TOUCH CONTROLS ---
+        const isTouchDevice = this.sys.game.device.input.touch || navigator.maxTouchPoints > 0;
+        if (isTouchDevice) {
+            const createTouchButton = (x, y, radius, label, onClickStateName) => {
+                const container = this.add.container(x, y);
+                
+                const bg = this.add.graphics();
+                bg.fillStyle(0x3e2723, 0.5); // semi-transparent brown
+                bg.fillCircle(0, 0, radius);
+                bg.lineStyle(3, 0xd7ccc8, 0.7);
+                bg.strokeCircle(0, 0, radius);
+                
+                const text = this.add.text(0, 0, label, {
+                    fontSize: `${radius * 0.9}px`,
+                    fill: '#ffffff',
+                    fontFamily: 'Arial, sans-serif',
+                    fontStyle: 'bold'
+                }).setOrigin(0.5);
+                
+                container.add([bg, text]);
+                
+                const zone = this.add.zone(0, 0, radius * 2, radius * 2)
+                    .setInteractive({ useHandCursor: true });
+                container.add(zone);
+                
+                const gameScene = this.scene.get('GameScene');
+                
+                zone.on('pointerdown', () => {
+                    bg.clear();
+                    bg.fillStyle(0x8d6e63, 0.8); // Pressed state
+                    bg.fillCircle(0, 0, radius);
+                    bg.lineStyle(3, 0xffffff, 1.0);
+                    bg.strokeCircle(0, 0, radius);
+                    
+                    if (gameScene && gameScene.touchControls) {
+                        gameScene.touchControls[onClickStateName] = true;
+                    }
+                });
+                
+                const release = () => {
+                    bg.clear();
+                    bg.fillStyle(0x3e2723, 0.5);
+                    bg.fillCircle(0, 0, radius);
+                    bg.lineStyle(3, 0xd7ccc8, 0.7);
+                    bg.strokeCircle(0, 0, radius);
+                    
+                    if (gameScene && gameScene.touchControls) {
+                        gameScene.touchControls[onClickStateName] = false;
+                    }
+                };
+                
+                zone.on('pointerup', release);
+                zone.on('pointerout', release);
+                
+                return container;
+            };
+
+            // Movement D-pad
+            this.btnLeft = createTouchButton(70, 520, 35, '←', 'left');
+            this.btnRight = createTouchButton(160, 520, 35, '→', 'right');
+            
+            // Actions
+            this.btnJump = createTouchButton(730, 520, 40, '▲', 'jump');
+            this.btnAttack = createTouchButton(630, 520, 35, '⚔', 'attack');
+            this.btnSprint = createTouchButton(730, 420, 25, '⚡', 'sprint');
+
+            // Hide sprint/attack initially based on state
+            this.btnSprint.setVisible(false);
+            this.btnAttack.setVisible(false);
+        }
+    }
+
+    update() {
+        const gameScene = this.scene.get('GameScene');
+        if (gameScene) {
+            const sprintUnlocked = this.registry.get('sprintUnlocked') === true;
+            const swordUnlocked = this.registry.get('swordUnlocked') === true;
+            if (this.btnSprint) this.btnSprint.setVisible(sprintUnlocked);
+            if (this.btnAttack) this.btnAttack.setVisible(swordUnlocked);
+        }
     }
 }
 
@@ -217,6 +298,14 @@ class GameScene extends Phaser.Scene {
             this.registry.set('sprintUnlocked', true);
             this.registry.set('swordUnlocked', true);
         }
+
+        this.touchControls = {
+            left: false,
+            right: false,
+            jump: false,
+            attack: false,
+            sprint: false
+        };
     }
 
     preload() {
@@ -1014,6 +1103,8 @@ class GameScene extends Phaser.Scene {
         this.cameras.main.startFollow(this.player, true, 0.08, 0.08);
         this.cameras.main.setZoom(1.8);
 
+        this.input.addPointer(2); // Enable multi-touch pointers
+
         this.cursors = this.input.keyboard.createCursorKeys();
         this.wasd = this.input.keyboard.addKeys({ up: 87, down: 83, left: 65, right: 68 });
         this.keyJ = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.J);
@@ -1404,7 +1495,9 @@ class GameScene extends Phaser.Scene {
         const swordUnlocked = this.registry.get('swordUnlocked') === true;
 
         // Trigger sword attack
-        if (Phaser.Input.Keyboard.JustDown(this.keyJ) && swordUnlocked && !this.player.isAttacking) {
+        const isAttackPressed = Phaser.Input.Keyboard.JustDown(this.keyJ) || this.touchControls.attack;
+        if (isAttackPressed && swordUnlocked && !this.player.isAttacking) {
+            this.touchControls.attack = false; // Reset touch trigger
             this.player.isAttacking = true;
             this.player.setVelocity(0);
             this.player.setAccelerationX(0);
@@ -1486,7 +1579,7 @@ class GameScene extends Phaser.Scene {
         if (this.player.isAttacking) return;
 
         const sprintUnlocked = this.registry.get('sprintUnlocked') === true;
-        const isSprinting = sprintUnlocked && this.cursors.shift && this.cursors.shift.isDown;
+        const isSprinting = sprintUnlocked && ((this.cursors.shift && this.cursors.shift.isDown) || this.touchControls.sprint);
         const accel = isSprinting ? 1800 : 1200;
         const maxVelX = isSprinting ? 380 : 250;
         const jumpVelocity = -650; 
@@ -1553,12 +1646,12 @@ class GameScene extends Phaser.Scene {
 
         if (this.isTakingDamage) return; 
 
-        if (this.cursors.left.isDown || this.wasd.left.isDown) {
+        if (this.cursors.left.isDown || this.wasd.left.isDown || this.touchControls.left) {
             this.player.setAccelerationX(-accel);
             this.player.setFlipX(true);
             isMoving = true;
         }
-        else if (this.cursors.right.isDown || this.wasd.right.isDown) {
+        else if (this.cursors.right.isDown || this.wasd.right.isDown || this.touchControls.right) {
             this.player.setAccelerationX(accel);
             this.player.setFlipX(false);
             isMoving = true;
@@ -1568,8 +1661,12 @@ class GameScene extends Phaser.Scene {
         }
 
         const isGrounded = this.player.body.blocked.down || this.player.body.touching.down;
-        if ((this.cursors.up.isDown || this.wasd.up.isDown || this.input.keyboard.checkDown(this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE))) && isGrounded) {
+        const isJumpPressed = this.cursors.up.isDown || this.wasd.up.isDown || 
+                             this.input.keyboard.checkDown(this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE)) || 
+                             this.touchControls.jump;
+        if (isJumpPressed && isGrounded) {
             this.player.setVelocityY(jumpVelocity);
+            this.touchControls.jump = false; // Reset touch jump
         }
 
         const suffix = swordUnlocked ? '_sword' : '';
