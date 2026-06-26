@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Terrain Tiles</title>
+    <style>
+        body {
+            background-color: #1a1a2e;
+            color: white;
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(17, 40px);
+            gap: 6px;
+            background: #111;
+            padding: 15px;
+            border-radius: 8px;
+            width: fit-content;
+            margin: 20px auto;
+            border: 2px dashed #444;
+        }
+        .tile {
+            width: 32px;
+            height: 32px;
+            background-image: url('assets/environment/Terrain/Terrain (32x32).png');
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+            position: relative;
+            border: 1px solid #333;
+        }
+        .label {
+            position: absolute;
+            bottom: -2px;
+            right: -2px;
+            background: rgba(0,0,0,0.85);
+            color: #ffcc00;
+            font-size: 9px;
+            padding: 1px 3px;
+            border-radius: 3px;
+            font-weight: bold;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <h2>Terrain Tiles Grid (17 Columns x 5 Rows)</h2>
+    <p>Open this page at http://localhost:5173/test_tiles.html to inspect the frame index numbers of all tiles.</p>
+    <div class="grid" id="tile-container"></div>
+
+    <script>
+        const container = document.getElementById('tile-container');
+        for (let i = 0; i < 85; i++) {
+            const tile = document.createElement('div');
+            tile.className = 'tile';
+            const col = i % 17;
+            const row = Math.floor(i / 17);
+            const x = col * 32;
+            const y = row * 32;
+            tile.style.backgroundPosition = `-${x}px -${y}px`;
+            
+            const label = document.createElement('span');
+            label.className = 'label';
+            label.innerText = i;
+            
+            tile.appendChild(label);
+            container.appendChild(tile);
+        }
+    </script>
+</body>
+</html>
