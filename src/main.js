@@ -176,76 +176,191 @@ class UIScene extends Phaser.Scene {
             });
         });
 
-        // --- MOBILE TOUCH CONTROLS ---
-        const isTouchDevice = this.sys.game.device.input.touch || navigator.maxTouchPoints > 0;
-        if (isTouchDevice) {
-            const createTouchButton = (x, y, radius, label, onClickStateName) => {
-                const container = this.add.container(x, y);
-                
-                const bg = this.add.graphics();
-                bg.fillStyle(0x3e2723, 0.5); // semi-transparent brown
-                bg.fillCircle(0, 0, radius);
-                bg.lineStyle(3, 0xd7ccc8, 0.7);
-                bg.strokeCircle(0, 0, radius);
-                
-                const text = this.add.text(0, 0, label, {
-                    fontSize: `${radius * 0.9}px`,
-                    fill: '#ffffff',
-                    fontFamily: 'Arial, sans-serif',
-                    fontStyle: 'bold'
-                }).setOrigin(0.5);
-                
-                container.add([bg, text]);
-                
-                const zone = this.add.zone(0, 0, radius * 2, radius * 2)
-                    .setInteractive({ useHandCursor: true });
-                container.add(zone);
-                
-                const gameScene = this.scene.get('GameScene');
-                
-                zone.on('pointerdown', () => {
-                    bg.clear();
-                    bg.fillStyle(0x8d6e63, 0.8); // Pressed state
-                    bg.fillCircle(0, 0, radius);
-                    bg.lineStyle(3, 0xffffff, 1.0);
-                    bg.strokeCircle(0, 0, radius);
-                    
-                    if (gameScene && gameScene.touchControls) {
-                        gameScene.touchControls[onClickStateName] = true;
-                    }
-                });
-                
-                const release = () => {
-                    bg.clear();
-                    bg.fillStyle(0x3e2723, 0.5);
-                    bg.fillCircle(0, 0, radius);
-                    bg.lineStyle(3, 0xd7ccc8, 0.7);
-                    bg.strokeCircle(0, 0, radius);
-                    
-                    if (gameScene && gameScene.touchControls) {
-                        gameScene.touchControls[onClickStateName] = false;
-                    }
-                };
-                
-                zone.on('pointerup', release);
-                zone.on('pointerout', release);
-                
-                return container;
-            };
+        // Initialize mobile inputs
+        this.setupMobileControls();
+    }
 
-            // Movement D-pad
-            this.btnLeft = createTouchButton(70, 520, 35, '←', 'left');
-            this.btnRight = createTouchButton(160, 520, 35, '→', 'right');
+    setupMobileControls() {
+        const isMobile = !this.sys.game.device.os.desktop || this.sys.game.device.input.touch || navigator.maxTouchPoints > 0 || window.ontouchstart !== undefined;
+        if (!isMobile) return;
+
+        this.joystickInput = { x: 0, y: 0 };
+        this.mobileJump = false;
+        this.mobileAttack = false;
+        this.mobileSprint = false;
+
+        // Joystick Base and Knob
+        const joyBaseX = 120;
+        const joyBaseY = 480;
+        const maxRadius = 45;
+
+        // Draw Joystick using Graphics
+        const joyBase = this.add.graphics();
+        joyBase.fillStyle(0x000000, 0.25);
+        joyBase.lineStyle(4, 0xffffff, 0.35);
+        joyBase.fillCircle(joyBaseX, joyBaseY, 60);
+        joyBase.strokeCircle(joyBaseX, joyBaseY, 60);
+        joyBase.setScrollFactor(0);
+        joyBase.setDepth(100);
+
+        const joyKnob = this.add.graphics();
+        joyKnob.fillStyle(0xffffff, 0.5);
+        joyKnob.lineStyle(3, 0xffffff, 0.8);
+        joyKnob.fillCircle(0, 0, 30);
+        joyKnob.strokeCircle(0, 0, 30);
+        joyKnob.setPosition(joyBaseX, joyBaseY);
+        joyKnob.setScrollFactor(0);
+        joyKnob.setDepth(101);
+
+        // Joystick Touch Zone
+        const joyZone = this.add.zone(joyBaseX, joyBaseY, 150, 150).setInteractive();
+        joyZone.setScrollFactor(0);
+
+        let joystickPointer = null;
+
+        const updateJoystick = (pointer) => {
+            if (!pointer.isDown) return;
+            const dx = pointer.x - joyBaseX;
+            const dy = pointer.y - joyBaseY;
+            const distance = Math.sqrt(dx * dx + dy * dy);
             
-            // Actions
-            this.btnJump = createTouchButton(730, 520, 40, '▲', 'jump');
-            this.btnAttack = createTouchButton(630, 520, 35, '⚔', 'attack');
-            this.btnSprint = createTouchButton(730, 420, 25, '⚡', 'sprint');
+            if (distance > 0) {
+                const angle = Math.atan2(dy, dx);
+                const clampedDist = Math.min(distance, maxRadius);
+                const knobX = joyBaseX + Math.cos(angle) * clampedDist;
+                const knobY = joyBaseY + Math.sin(angle) * clampedDist;
+                
+                joyKnob.setPosition(knobX, knobY);
+                
+                this.joystickInput.x = Math.cos(angle) * (clampedDist / maxRadius);
+                this.joystickInput.y = Math.sin(angle) * (clampedDist / maxRadius);
+            }
+        };
 
-            // Hide sprint/attack initially based on state
-            this.btnSprint.setVisible(false);
-            this.btnAttack.setVisible(false);
-        }
+        joyZone.on('pointerdown', (pointer) => {
+            joystickPointer = pointer;
+            updateJoystick(pointer);
+        });
+
+        this.input.on('pointermove', (pointer) => {
+            if (joystickPointer && pointer.id === joystickPointer.id) {
+                updateJoystick(pointer);
+            }
+        });
+
+        const resetJoystick = (pointer) => {
+            if (joystickPointer && pointer.id === joystickPointer.id) {
+                joystickPointer = null;
+                joyKnob.setPosition(joyBaseX, joyBaseY);
+                this.joystickInput.x = 0;
+                this.joystickInput.y = 0;
+            }
+        };
+
+        this.input.on('pointerup', resetJoystick);
+        this.input.on('pointerupoutside', resetJoystick);
+
+        // Draw Jump Button using Graphics
+        const btnJump = this.add.container(720, 440);
+        const bgJump = this.add.graphics();
+        bgJump.fillStyle(0x3e2723, 0.5);
+        bgJump.fillCircle(0, 0, 35);
+        bgJump.lineStyle(3, 0xd7ccc8, 0.7);
+        bgJump.strokeCircle(0, 0, 35);
+        const txtJump = this.add.text(0, 0, '▲', { fontSize: '28px', fill: '#ffffff', fontStyle: 'bold' }).setOrigin(0.5);
+        btnJump.add([bgJump, txtJump]);
+        const zoneJump = this.add.zone(0, 0, 70, 70).setInteractive();
+        btnJump.add(zoneJump);
+        btnJump.setScrollFactor(0).setDepth(100);
+
+        // Draw Attack Button using Graphics
+        const btnAttack = this.add.container(630, 500);
+        const bgAttack = this.add.graphics();
+        bgAttack.fillStyle(0x3e2723, 0.5);
+        bgAttack.fillCircle(0, 0, 35);
+        bgAttack.lineStyle(3, 0xd7ccc8, 0.7);
+        bgAttack.strokeCircle(0, 0, 35);
+        const txtAttack = this.add.text(0, 0, '⚔', { fontSize: '28px', fill: '#ffffff', fontStyle: 'bold' }).setOrigin(0.5);
+        btnAttack.add([bgAttack, txtAttack]);
+        const zoneAttack = this.add.zone(0, 0, 70, 70).setInteractive();
+        btnAttack.add(zoneAttack);
+        btnAttack.setScrollFactor(0).setDepth(100);
+
+        // Draw Sprint Button using Graphics
+        const btnSprint = this.add.container(720, 340);
+        const bgSprint = this.add.graphics();
+        bgSprint.fillStyle(0x3e2723, 0.5);
+        bgSprint.fillCircle(0, 0, 25);
+        bgSprint.lineStyle(2, 0xd7ccc8, 0.7);
+        bgSprint.strokeCircle(0, 0, 25);
+        const txtSprint = this.add.text(0, 0, '⚡', { fontSize: '20px', fill: '#ffffff', fontStyle: 'bold' }).setOrigin(0.5);
+        btnSprint.add([bgSprint, txtSprint]);
+        const zoneSprint = this.add.zone(0, 0, 50, 50).setInteractive();
+        btnSprint.add(zoneSprint);
+        btnSprint.setScrollFactor(0).setDepth(100);
+
+        // Button events
+        zoneJump.on('pointerdown', () => {
+            this.mobileJump = true;
+            bgJump.clear();
+            bgJump.fillStyle(0x8d6e63, 0.8);
+            bgJump.fillCircle(0, 0, 35);
+            bgJump.lineStyle(3, 0xffffff, 1.0);
+            bgJump.strokeCircle(0, 0, 35);
+        });
+        const releaseJump = () => {
+            this.mobileJump = false;
+            bgJump.clear();
+            bgJump.fillStyle(0x3e2723, 0.5);
+            bgJump.fillCircle(0, 0, 35);
+            bgJump.lineStyle(3, 0xd7ccc8, 0.7);
+            bgJump.strokeCircle(0, 0, 35);
+        };
+        zoneJump.on('pointerup', releaseJump);
+        zoneJump.on('pointerout', releaseJump);
+
+        zoneAttack.on('pointerdown', () => {
+            this.mobileAttack = true;
+            bgAttack.clear();
+            bgAttack.fillStyle(0x8d6e63, 0.8);
+            bgAttack.fillCircle(0, 0, 35);
+            bgAttack.lineStyle(3, 0xffffff, 1.0);
+            bgAttack.strokeCircle(0, 0, 35);
+        });
+        const releaseAttack = () => {
+            bgAttack.clear();
+            bgAttack.fillStyle(0x3e2723, 0.5);
+            bgAttack.fillCircle(0, 0, 35);
+            bgAttack.lineStyle(3, 0xd7ccc8, 0.7);
+            bgAttack.strokeCircle(0, 0, 35);
+        };
+        zoneAttack.on('pointerup', releaseAttack);
+        zoneAttack.on('pointerout', releaseAttack);
+
+        zoneSprint.on('pointerdown', () => {
+            this.mobileSprint = true;
+            bgSprint.clear();
+            bgSprint.fillStyle(0x8d6e63, 0.8);
+            bgSprint.fillCircle(0, 0, 25);
+            bgSprint.lineStyle(2, 0xffffff, 1.0);
+            bgSprint.strokeCircle(0, 0, 25);
+        });
+        const releaseSprint = () => {
+            this.mobileSprint = false;
+            bgSprint.clear();
+            bgSprint.fillStyle(0x3e2723, 0.5);
+            bgSprint.fillCircle(0, 0, 25);
+            bgSprint.lineStyle(2, 0xd7ccc8, 0.7);
+            bgSprint.strokeCircle(0, 0, 25);
+        };
+        zoneSprint.on('pointerup', releaseSprint);
+        zoneSprint.on('pointerout', releaseSprint);
+
+        // Dynamic visibility updates
+        this.btnSprint = btnSprint;
+        this.btnAttack = btnAttack;
+        this.btnSprint.setVisible(false);
+        this.btnAttack.setVisible(false);
     }
 
     update() {
@@ -407,6 +522,10 @@ class GameScene extends Phaser.Scene {
         // Popup UI Assets
         this.load.image('ui_board', 'assets/ui/Prefabs/6.png');
         this.load.image('ui_button', 'assets/ui/Prefabs/8.png');
+
+        // Mobile Buttons Assets
+        this.load.image('btn_jump', 'assets/ui/Mobile Buttons/Mobile Buttons/5.png');
+        this.load.image('btn_attack', 'assets/ui/Mobile Buttons/Mobile Buttons/6.png');
     }
 
     create() {
@@ -1484,6 +1603,12 @@ class GameScene extends Phaser.Scene {
     update() {
         if (this.health <= 0 || this.isLevelComplete) return;
 
+        // Extract mobile inputs from UIScene
+        const uiScene = this.scene.get('UIScene');
+        const joyX = (uiScene && uiScene.joystickInput) ? uiScene.joystickInput.x : 0;
+        const mobileJump = uiScene ? uiScene.mobileJump === true : false;
+        const mobileAttack = uiScene ? uiScene.mobileAttack === true : false;
+
         if (this.player.y > 650) {
             this.takeDamage();
             if (this.health > 0) {
@@ -1495,9 +1620,8 @@ class GameScene extends Phaser.Scene {
         const swordUnlocked = this.registry.get('swordUnlocked') === true;
 
         // Trigger sword attack
-        const isAttackPressed = Phaser.Input.Keyboard.JustDown(this.keyJ) || this.touchControls.attack;
-        if (isAttackPressed && swordUnlocked && !this.player.isAttacking) {
-            this.touchControls.attack = false; // Reset touch trigger
+        if ((Phaser.Input.Keyboard.JustDown(this.keyJ) || mobileAttack) && swordUnlocked && !this.player.isAttacking) {
+            if (uiScene) uiScene.mobileAttack = false; // Consume the mobile attack button trigger
             this.player.isAttacking = true;
             this.player.setVelocity(0);
             this.player.setAccelerationX(0);
@@ -1579,7 +1703,11 @@ class GameScene extends Phaser.Scene {
         if (this.player.isAttacking) return;
 
         const sprintUnlocked = this.registry.get('sprintUnlocked') === true;
-        const isSprinting = sprintUnlocked && ((this.cursors.shift && this.cursors.shift.isDown) || this.touchControls.sprint);
+        const isSprinting = sprintUnlocked && (
+            (this.cursors.shift && this.cursors.shift.isDown) || 
+            (Math.abs(joyX) > 0.8) ||
+            (uiScene && uiScene.mobileSprint === true)
+        );
         const accel = isSprinting ? 1800 : 1200;
         const maxVelX = isSprinting ? 380 : 250;
         const jumpVelocity = -650; 
@@ -1646,13 +1774,15 @@ class GameScene extends Phaser.Scene {
 
         if (this.isTakingDamage) return; 
 
-        if (this.cursors.left.isDown || this.wasd.left.isDown || this.touchControls.left) {
-            this.player.setAccelerationX(-accel);
+        if (this.cursors.left.isDown || this.wasd.left.isDown || joyX < -0.15) {
+            const targetAccel = joyX < -0.15 ? -accel * Math.abs(joyX) : -accel;
+            this.player.setAccelerationX(targetAccel);
             this.player.setFlipX(true);
             isMoving = true;
         }
-        else if (this.cursors.right.isDown || this.wasd.right.isDown || this.touchControls.right) {
-            this.player.setAccelerationX(accel);
+        else if (this.cursors.right.isDown || this.wasd.right.isDown || joyX > 0.15) {
+            const targetAccel = joyX > 0.15 ? accel * joyX : accel;
+            this.player.setAccelerationX(targetAccel);
             this.player.setFlipX(false);
             isMoving = true;
         }
@@ -1661,12 +1791,9 @@ class GameScene extends Phaser.Scene {
         }
 
         const isGrounded = this.player.body.blocked.down || this.player.body.touching.down;
-        const isJumpPressed = this.cursors.up.isDown || this.wasd.up.isDown || 
-                             this.input.keyboard.checkDown(this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE)) || 
-                             this.touchControls.jump;
-        if (isJumpPressed && isGrounded) {
+        if ((this.cursors.up.isDown || this.wasd.up.isDown || this.input.keyboard.checkDown(this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE)) || mobileJump) && isGrounded) {
+            if (uiScene) uiScene.mobileJump = false; // Reset mobile jump trigger
             this.player.setVelocityY(jumpVelocity);
-            this.touchControls.jump = false; // Reset touch jump
         }
 
         const suffix = swordUnlocked ? '_sword' : '';
@@ -1724,9 +1851,13 @@ class GameScene extends Phaser.Scene {
 
 const config = {
     type: Phaser.AUTO,
-    width: 800,
-    height: 600,
-    parent: 'game-container',
+    scale: {
+        mode: Phaser.Scale.FIT,
+        autoCenter: Phaser.Scale.CENTER_BOTH,
+        parent: 'game-container',
+        width: 800,
+        height: 600
+    },
     physics: {
         default: 'arcade',
         arcade: {
