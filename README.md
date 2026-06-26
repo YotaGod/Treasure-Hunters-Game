@@ -1,6 +1,6 @@
 <div align="center">
 
-🇮🇩 Bahasa Indonesia | [🇺🇸 English](./README.en.md)
+🇺🇸 English | [🇮🇩 Bahasa Indonesia](./README_id.md)
 
 # 🏴‍☠️ Treasure Hunters
 
@@ -8,71 +8,51 @@
 ![Phaser](https://img.shields.io/badge/Phaser-3.80.1-brightgreen.svg)
 ![Vite](https://img.shields.io/badge/Vite-5.0.0-yellow.svg)
 
-Game 2D Platformer petualangan mencari harta karun bajak laut. Dibuat menggunakan framework Phaser 3 dan dibundel dengan Vite.
+A 2D Platformer pirate treasure hunting adventure game. Built using the Phaser 3 framework and bundled with Vite.
 
-![Gameplay Screenshot](./public/assets/environment/Background/bg_color.png) *(Catatan: Ganti dengan screenshot gameplay sebenarnya)*
+![Gameplay Screenshot](./public/assets/environment/Background/bg_color.png) *(Note: Replace with actual gameplay screenshot)*
 
 </div>
 
-## 🎮 Fitur Utama
+## 🎮 Key Features
 
-- **4 Level Eksplorasi**: Menyelesaikan rintangan dari pantai hingga ke kapal bajak laut.
-- **Sistem Fisika**: Sistem gravitasi dan tabrakan dinamis dengan objek.
-- **Sistem Pertarungan**: Pemain dapat menggunakan pedang untuk mengalahkan musuh.
-- **Koleksi Harta Karun**: Mengumpulkan koin dan peti emas.
-- **Rintangan Dinamis**: Jebakan meriam, duri, dan musuh patroli.
-- **Animasi Sprite Halus**: Menggunakan sprite sheet untuk karakter, musuh, dan lingkungan.
+- **4 Exploration Levels**: Navigate obstacles from the beach to the pirate ship.
+- **Physics System**: Dynamic gravity and collision with objects.
+- **Combat System**: Players can use swords to defeat enemies.
+- **Treasure Collection**: Collect coins and gold chests.
+- **Dynamic Obstacles**: Cannon traps, spikes, and patrolling enemies.
+- **Smooth Sprite Animations**: Uses sprite sheets for characters, enemies, and environment.
 
-## 📂 Struktur Proyek
+## 📂 Documentation
 
-```text
-Treasure-Hunters/
-├── public/
-│   └── assets/           # Gambar, sprite sheet, environment
-├── src/
-│   ├── main.js           # Game Engine, Scene (Menu, Game, GameOver)
-│   └── style.css         # Styling UI luar canvas
-├── Doc/                  # Dokumentasi Proyek
-├── index.html            # File HTML Utama
-├── package.json          # Dependencies & Scripts
-└── vite.config.js        # Konfigurasi Bundler Vite
-```
+- [Architecture Guide](./docs/ARCHITECTURE.md)
+- [Contributing Guidelines](./docs/CONTRIBUTING.md)
+- [Code of Conduct](./docs/CODE_OF_CONDUCT.md)
 
-## 🚀 Panduan Instalasi
+## 🚀 Installation Guide
 
-Untuk panduan lengkap cara menjalankan proyek ini di mesin lokal Anda, silakan merujuk ke [SETUP_GUIDE.md](./Doc/SETUP_GUIDE.md).
+### Prerequisites:
+- Node.js (v16 or newer)
+- npm or yarn
 
-### Prasyarat:
-- Node.js (v16 atau lebih baru)
-- npm atau yarn
-
-### Instalasi Cepat:
+### Quick Install:
 ```bash
-# Clone repositori
+# Clone the repository
 git clone https://github.com/username/treasure-hunters.git
 cd treasure-hunters
 
-# Instal dependensi
+# Install dependencies
 npm install
 
-# Jalankan server pengembangan
+# Run development server
 npm run dev
 ```
 
-## 🛠️ Dibangun Dengan
+## 🛠️ Built With
 
-- [Phaser 3](https://phaser.io/) - Framework Game HTML5 Desktop dan Mobile yang cepat dan menyenangkan.
-- [Vite](https://vitejs.dev/) - Tooling Frontend generasi baru.
+- [Phaser 3](https://phaser.io/) - Fast, fun and free open source HTML5 game framework.
+- [Vite](https://vitejs.dev/) - Next generation frontend tooling.
 
-## 🤝 Kontribusi
+## 📄 License
 
-Proyek ini sangat terbuka untuk kontribusi! Baik itu perbaikan bug, penambahan stage, atau peningkatan aset. Silakan baca [CONTRIBUTING.md](./Doc/CONTRIBUTING.md) untuk panduan lengkap.
-
-## 🗺️ Roadmap & Changelog
-
-- Ingin melihat fitur apa saja yang sedang direncanakan? Lihat [ROADMAP.md](./Doc/ROADMAP.md).
-- Ingin melihat riwayat pembaruan proyek? Lihat [CHANGELOG.md](./Doc/CHANGELOG.md).
-
-## 📄 Lisensi
-
-Proyek ini menggunakan lisensi MIT. Anda bebas menggunakan, memodifikasi, dan mendistribusikan proyek ini.
+This project is licensed under the MIT License. You are free to use, modify, and distribute this project.
