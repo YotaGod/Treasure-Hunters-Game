@@ -181,8 +181,57 @@ class UIScene extends Phaser.Scene {
     }
 
     setupMobileControls() {
-        const isMobile = !this.sys.game.device.os.desktop || this.sys.game.device.input.touch;
-        if (!isMobile) return;
+        // --- Fullscreen Toggle Button (Always available for both Desktop & Mobile) ---
+        const btnFullscreen = this.add.image(750, 110, 'btn_fullscreen').setScale(2.5).setInteractive();
+        btnFullscreen.setScrollFactor(0);
+        btnFullscreen.setDepth(100);
+        btnFullscreen.setAlpha(0.8);
+
+        // Draw a neat fullscreen icon on top of the button
+        const fsIcon = this.add.graphics();
+        fsIcon.lineStyle(2, 0xffffff, 1);
+        // Top-left bracket
+        fsIcon.moveTo(743, 105);
+        fsIcon.lineTo(743, 101);
+        fsIcon.lineTo(747, 101);
+        // Top-right bracket
+        fsIcon.moveTo(757, 105);
+        fsIcon.lineTo(757, 101);
+        fsIcon.lineTo(753, 101);
+        // Bottom-left bracket
+        fsIcon.moveTo(743, 115);
+        fsIcon.lineTo(743, 119);
+        fsIcon.lineTo(747, 119);
+        // Bottom-right bracket
+        fsIcon.moveTo(757, 115);
+        fsIcon.lineTo(757, 119);
+        fsIcon.lineTo(753, 119);
+        fsIcon.strokePath();
+        fsIcon.setScrollFactor(0);
+        fsIcon.setDepth(101);
+
+        btnFullscreen.on('pointerdown', () => {
+            if (this.scale.isFullscreen) {
+                this.scale.stopFullscreen();
+            } else {
+                this.scale.startFullscreen();
+            }
+        });
+
+        this.scale.on('fullscreenchange', () => {
+            if (this.scale.isFullscreen) {
+                btnFullscreen.setTint(0x00ff00);
+            } else {
+                btnFullscreen.clearTint();
+            }
+        });
+
+        // --- Touch controls (Only for touch/mobile devices) ---
+        const isTouchDevice = this.sys.game.device.input.touch || 
+                              (navigator.maxTouchPoints && navigator.maxTouchPoints > 0) ||
+                              (window.matchMedia && window.matchMedia("(any-pointer: coarse)").matches);
+        
+        if (!isTouchDevice) return;
 
         this.joystickInput = { x: 0, y: 0 };
         this.mobileJump = false;
@@ -442,6 +491,7 @@ class GameScene extends Phaser.Scene {
         // Mobile Buttons Assets
         this.load.image('btn_jump', 'assets/ui/Mobile Buttons/Mobile Buttons/5.png');
         this.load.image('btn_attack', 'assets/ui/Mobile Buttons/Mobile Buttons/6.png');
+        this.load.image('btn_fullscreen', 'assets/ui/Mobile Buttons/Mobile Buttons/8.png');
     }
 
     create() {
