@@ -577,11 +577,23 @@ class GameScene extends Phaser.Scene {
         this.load.image('btn_jump', 'assets/ui/Mobile Buttons/Mobile Buttons/5.png');
         this.load.image('btn_attack', 'assets/ui/Mobile Buttons/Mobile Buttons/6.png');
         this.load.image('btn_fullscreen', 'assets/ui/Yellow Button/1.png');
+        this.load.audio('backsound', 'assets/music/backsound.m4a');
     }
 
     create() {
         if (!this.scene.isActive('UIScene')) {
             this.scene.launch('UIScene');
+        }
+
+        // Play continuous background music
+        if (!this.sound.get('backsound')) {
+            const bgm = this.sound.add('backsound', { loop: true, volume: 0.4 });
+            bgm.play();
+        } else {
+            const bgm = this.sound.get('backsound');
+            if (!bgm.isPlaying) {
+                bgm.play();
+            }
         }
 
         // Only create animations if they don't exist
