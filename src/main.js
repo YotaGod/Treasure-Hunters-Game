@@ -183,7 +183,7 @@ class UIScene extends Phaser.Scene {
 
     setupMobileControls() {
         // --- Fullscreen Toggle Button (Always available for both Desktop & Mobile) ---
-        const btnFullscreen = this.add.image(750, 110, 'ui_button').setScale(2.1, 0.6).setInteractive({ useHandCursor: true });
+        const btnFullscreen = this.add.image(750, 110, 'btn_fullscreen').setScale(5).setInteractive({ useHandCursor: true });
         btnFullscreen.setScrollFactor(0);
         btnFullscreen.setDepth(100);
         btnFullscreen.setAlpha(0.8);
@@ -576,7 +576,7 @@ class GameScene extends Phaser.Scene {
         // Mobile Buttons Assets
         this.load.image('btn_jump', 'assets/ui/Mobile Buttons/Mobile Buttons/5.png');
         this.load.image('btn_attack', 'assets/ui/Mobile Buttons/Mobile Buttons/6.png');
-        this.load.image('btn_fullscreen', 'assets/ui/Mobile Buttons/Mobile Buttons/8.png');
+        this.load.image('btn_fullscreen', 'assets/ui/Yellow Button/1.png');
     }
 
     create() {
