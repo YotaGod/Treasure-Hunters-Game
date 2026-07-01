@@ -887,7 +887,17 @@ class GameScene extends Phaser.Scene {
                     (i > 1900 && i < 2200) || // 300px gap - requires sprint
                     (i > 2700 && i < 3000) || // 300px gap - requires sprint
                     (i > 3500 && i < 3950);   // 450px gap - requires jumping across stepping stones
-            } else { // Level 3 (Combat and traps)
+            } else if (this.currentLevel === 6) {
+                isGap = (i > 400 && i < 650) || (i > 1500 && i < 1800) || (i > 2800 && i < 3100);
+            } else if (this.currentLevel === 7) {
+                isGap = (i > 300 && i < 700) || (i > 1200 && i < 1600) || (i > 2200 && i < 2600) || (i > 3200 && i < 3700);
+            } else if (this.currentLevel === 8) {
+                isGap = (i > 500 && i < 800) || (i > 1400 && i < 1700) || (i > 2300 && i < 2600) || (i > 3200 && i < 3500);
+            } else if (this.currentLevel === 9) {
+                isGap = (i > 800 && i < 1100) || (i > 2400 && i < 2700);
+            } else if (this.currentLevel === 10) {
+                isGap = (i > 400 && i < 800) || (i > 1300 && i < 1700) || (i > 2200 && i < 2600) || (i > 3100 && i < 3600);
+            } else { // Level 3 and 5 (Combat and traps)
                 isGap = (i > 300 && i < 600) ||
                     (i > 1000 && i < 1300) ||
                     (i > 1700 && i < 2000) ||
@@ -1366,6 +1376,11 @@ class GameScene extends Phaser.Scene {
             createPlatform(500, 380, 5);
             addCoinsToPlatform(500, 380, 5);
 
+            // Stepping platform back to upper deck if player falls to ground at X=600
+            createPlatform(600, 480, 1);
+
+            // Platform 900 with stepping stone
+            createPlatform(800, 490, 1); // Stepping stone
             createPlatform(900, 420, 3);
             createBreakable(950, 388, 'box');
             
@@ -1384,8 +1399,10 @@ class GameScene extends Phaser.Scene {
             createPlatform(1700, 230, 6);
             addCoinsToPlatform(1700, 230, 6);
             createWalkableTree(1800 + 16, 568, 2, 1); // Walkable tree as mast to climb to upper platform
-
-            // Middle section ship deck
+ 
+            // Middle section ship deck with stepping stones to reach it
+            createPlatform(2080, 480, 1); // Stepping stone 1
+            createPlatform(2140, 390, 1); // Stepping stone 2
             createPlatform(2200, 310, 4);
             createFierceTooth(2250, 260);
 
@@ -1399,6 +1416,7 @@ class GameScene extends Phaser.Scene {
 
             createPlatform(2800, 420, 4);
             addCoinsToPlatform(2800, 420, 4);
+            createPlatform(2950, 490, 1); // Stepping stone to easily get up
 
             // Main mast climbing section
             createPlatform(3100, 300, 3);
@@ -1407,7 +1425,8 @@ class GameScene extends Phaser.Scene {
             // Bridge walkable tree over Gap5 (3400-3800)
             createWalkableTree(3500 + 16, 568, 2, 1); // Walkable tree to cross Gap5
 
-            // Final treasure deck platform
+            // Final treasure deck platform with stepping stone to make it reachable from lower deck
+            createPlatform(3600, 350, 1); // Stepping stone to Y=250
             createPlatform(3650, 250, 6);
             addCoinsToPlatform(3650, 250, 6);
             createFierceTooth(3750, 200); // Guarding key at Y=250
@@ -1417,7 +1436,7 @@ class GameScene extends Phaser.Scene {
             // Key and Chest
             this.chestKey = this.chestKeys.create(3800, 200, 'chest_key_1');
             this.chestKey.play('chest_key_idle');
-
+ 
             this.goldChest = this.goldChests.create(4100, 418, 'chest_idle'); // platform at 450 (450 - 32 = 418)
             this.goldChest.body.setSize(30, 32);
             this.goldChest.refreshBody();
@@ -1430,182 +1449,168 @@ class GameScene extends Phaser.Scene {
             // Level 5 Finish Line at 4400 (stands on floor Y=584)
             this.finishFlag = this.physics.add.sprite(4400, 521.5, 'flag_1');
         } else if (this.currentLevel === 6) { // Stage 6: Arrival at Uncharted Island
-            // Gaps are: (i > 300 && i < 600) || (i > 1000 && i < 1300) || (i > 1700 && i < 2000) || (i > 2500 && i < 2900) || (i > 3400 && i < 3800)
+            // Gaps are: (i > 400 && i < 650) || (i > 1500 && i < 1800) || (i > 2800 && i < 3100)
             
-            // World 2 terrain elements using createWorldPlatform
+            // Start platform
             createWorldPlatform(200, 480, 2);
             addAncientCoinsToPlatform(200, 480, 2);
-
-            // Bridge platforms over Gap1 (300-600)
-            createWorldPlatform(400, 490, 2); // Bridge to cross Gap1
-
-            createWorldPlatform(600, 400, 3);
-            createBreakable(650, 368, 'barrel');
-
-            createWorldPlatform(750, 310, 4);
-            addAncientCoinsToPlatform(750, 310, 4);
-
-            createWorldPlatform(1000, 420, 3);
-            createFierceTooth(1050, 370);
-
-            // Rigging and climbing sections (trees acting as climbs)
-            createWorldPlatform(1300, 330, 4);
-            createWalkableTree(1450 + 16, 568, 2, 2); // Walkable tree to climb to upper platforms
-
-            createWorldPlatform(1600, 250, 4);
-            addAncientCoinsToPlatform(1600, 250, 4);
-
-            createWorldPlatform(1850, 370, 3);
+ 
+            // Bridge Gap1 (400-650)
+            createWorldPlatform(430, 490, 1); // Stepping stone 1
+            createWorldPlatform(520, 410, 1); // Stepping stone 2
             
-            // Checkpoint flag
-            createCheckpoint(1850, 307.5); // platform height is 370 (370 - 62.5 = 307.5)
+            // Upper deck/cabin platform
+            createWorldPlatform(650, 360, 4);
+            addAncientCoinsToPlatform(650, 360, 4);
+            createBreakable(750, 328, 'barrel');
 
-            // Heavy combat deck (Fierce Tooth and Crabby guarding)
-            createWorldPlatform(2100, 280, 5);
-            createFierceTooth(2200, 230); // Guards key!
+            // Low stepping platform for easy climb
+            createWorldPlatform(950, 470, 3);
+            createCrabby(1000, 420);
 
-            // Bridge platform over Gap4 (2500-2900)
-            createWorldPlatform(2550, 490, 2); // Bridge to cross Gap4
+            // Ground checkpoint in the middle of ground deck
+            createCheckpoint(1200, 521.5);
+ 
+            // Platform before Gap2
+            createWorldPlatform(1350, 420, 3);
+            createWalkableTree(1450 + 16, 568, 2, 2); // Walkable tree to climb up
 
-            createWorldPlatform(2700, 370, 5);
-            addAncientCoinsToPlatform(2700, 370, 5);
+            // Bridge Gap2 (1500-1800)
+            createWorldPlatform(1550, 470, 1); // Stepping stone 1
+            createWorldPlatform(1680, 390, 1); // Stepping stone 2
 
-            createWorldPlatform(2950, 480, 3);
-            createBreakable(3000, 448, 'box');
+            // Platform at the other side of Gap2
+            createWorldPlatform(1850, 460, 1); // Stepping stone to Y=370
+            createWorldPlatform(1900, 370, 3);
+            addAncientCoinsToPlatform(1900, 370, 3);
 
-            createWorldPlatform(3200, 390, 4);
-            createCrabby(3250, 340);
+            // Vault-like combat platform (holds key)
+            createWorldPlatform(2150, 460, 1); // Stepping stone 1
+            createWorldPlatform(2220, 370, 1); // Stepping stone 2
+            createWorldPlatform(2300, 280, 4); // Key platform
+            createFierceTooth(2350, 230); // Guarding key
 
-            // Bridge platform over Gap5 (3400-3800)
-            createWorldPlatform(3500, 490, 2); // Bridge to cross Gap5
+            // Bridge Gap3 (2800-3100)
+            createWalkableTree(2950 + 16, 568, 3, 2); // Mast tree to cross the gap and climb
 
-            createWorldPlatform(3700, 260, 4);
-            addAncientCoinsToPlatform(3700, 260, 4);
+            // Right side deck platforms
+            createWorldPlatform(3200, 480, 2); // Low step
+            createWorldPlatform(3350, 390, 3); // High platform
+            createCrabby(3400, 340);
+            addAncientCoinsToPlatform(3350, 390, 3);
 
-            createWorldPlatform(3700, 400, 3);
-            createWorldPlatform(3900, 490, 5);
-
+            createWorldPlatform(3650, 480, 2); // Low step
+            createWorldPlatform(3800, 390, 4); // Chest platform
+            
             // Chest & Key placement
-            this.chestKey = this.masterKeys.create(2200, 230, 'master_key'); // Place the Master Key!
+            this.chestKey = this.masterKeys.create(2350, 240, 'master_key'); // Place the Master Key!
             this.chestKey.body.setSize(24, 24);
-
-            this.goldChest = this.goldChests.create(4000, 458, 'chest_idle'); // platform at 490 (490 - 32 = 458)
+ 
+            this.goldChest = this.goldChests.create(3900, 358, 'chest_idle'); // platform at 390 (390 - 32 = 358)
             this.goldChest.body.setSize(30, 32);
             this.goldChest.refreshBody();
-
+ 
             // Enemies patrol
-            createCrabby(800, 550);
-            createCrabby(2800, 550);
+            createCrabby(850, 550);
+            createCrabby(2600, 550);
             createCrabby(4100, 550);
-
+ 
             // Level 6 Finish Line at 4400 (stands on floor Y=584)
             this.finishFlag = this.physics.add.sprite(4400, 521.5, 'flag_1');
         } else if (this.currentLevel === 7) { // Stage 7: The Treacherous Canopy
-            // World 2 terrain elements using createWorldPlatform
-            // Gaps are: (i > 300 && i < 600) || (i > 1000 && i < 1300) || (i > 1700 && i < 2000) || (i > 2500 && i < 2900) || (i > 3400 && i < 3800)
+            // Gaps are: (i > 300 && i < 700) || (i > 1200 && i < 1600) || (i > 2200 && i < 2600) || (i > 3200 && i < 3700)
             
             // Start platform
-            createWorldPlatform(200, 490, 2);
-
-            // Bridge platform over Gap1 (300-600)
-            createWorldPlatform(350, 490, 2); // Bridge to cross Gap1 start
-
-            // Series of trees above the gaps to cross
-            // 300 to 600 gap (spikes at Y=584)
-            createWalkableTree(500, 568, 3, 2); // Top is at Y=304
-            addAncientCoinsToPlatform(485, 240, 2);
-
-            createWorldPlatform(700, 380, 4);
-            createCrabby(750, 330);
-
-            // 1000 to 1300 gap (spikes at Y=584)
-            createWalkableTree(1150, 568, 4, 3); // Top is at Y=224
-            addAncientCoinsToPlatform(1135, 160, 2);
-
-            // Cannon firing at the player near tree 1150
-            createCannon(900, 260, 'right');
-
-            createWorldPlatform(1350, 330, 4);
-            createBreakable(1400, 298, 'barrel');
-
-            // 1700 to 2000 gap (spikes at Y=584)
-            createWalkableTree(1850, 568, 3, 2); // Top is at Y=304
-
-            createWorldPlatform(2100, 310, 4);
-            // Checkpoint flag on this middle deck
-            createCheckpoint(2100, 247.5); // platform height is 310 (310 - 62.5 = 247.5)
-            createFierceTooth(2200, 260);
-
-            // 2500 to 2900 gap (bottomless pit!)
-            createWalkableTree(2600, 568, 4, 0); // Top is at Y=224, holds the Master Key!
-            // Cannon firing across this pit
-            createCannon(2450, 260, 'right');
-
-            createWorldPlatform(2950, 350, 4);
-            createBreakable(3000, 318, 'box');
-
-            createWalkableTree(3150, 568, 3, 2); // Top is at Y=304
-
-            // 3400 to 3800 gap (bottomless pit!)
-            createWalkableTree(3550, 568, 2, 2); // Top is at Y=384
-
-            createWorldPlatform(3900, 450, 5);
-
+            createWorldPlatform(150, 480, 2);
+ 
+            // Canopy progression over Gap1 (300-700)
+            createWalkableTree(400, 568, 2, 2); // Leaves at Y=384
+            createWalkableTree(550, 568, 3, 2); // Leaves at Y=304
+            addAncientCoinsToPlatform(535, 240, 2);
+ 
+            // Ground stepping stone to get back up from floor X=700
+            createWorldPlatform(700, 470, 1);
+            createWorldPlatform(780, 360, 4);
+            createCrabby(820, 310);
+ 
+            // Canopy progression over Gap2 (1200-1600)
+            createWorldPlatform(1050, 380, 3);
+            createCannon(1000, 346, 'right');
+            createWalkableTree(1250, 568, 3, 3); // Leaves at Y=304
+            createWalkableTree(1450, 568, 2, 2); // Leaves at Y=384
+            addAncientCoinsToPlatform(1435, 320, 2);
+ 
+            // Ground deck in the middle
+            createWorldPlatform(1700, 470, 1); // Stepping stone
+            createWorldPlatform(1800, 380, 4);
+            createCheckpoint(1800, 317.5); // Checkpoint on platform Y=380
+            createFierceTooth(1900, 330);
+ 
+            // Canopy progression over Gap3 (2200-2600) - Holds key
+            createWalkableTree(2300, 568, 3, 2); // Leaves at Y=304
+            createWalkableTree(2480, 568, 4, 0); // Leaves at Y=224 - Holds the Master Key!
+            
+            createWorldPlatform(2750, 350, 4);
+            createBreakable(2800, 318, 'box');
+            createWorldPlatform(2700, 460, 1); // Stepping stone from ground
+ 
+            // Canopy progression over Gap4 (3200-3700)
+            createWalkableTree(3350, 568, 2, 2); // Leaves at Y=384
+            createWalkableTree(3550, 568, 3, 2); // Leaves at Y=304
+            addAncientCoinsToPlatform(3535, 240, 2);
+ 
+            createWorldPlatform(3850, 430, 5);
+ 
             // Key and Chest
-            this.chestKey = this.masterKeys.create(2600, 184, 'master_key'); // 224 - 40 = 184 (4 trunks top palm leaf)
+            this.chestKey = this.masterKeys.create(2480, 184, 'master_key'); // 224 - 40 = 184
             this.chestKey.body.setSize(24, 24);
-
-            this.goldChest = this.goldChests.create(4100, 418, 'chest_idle'); // platform at 450 (450 - 32 = 418)
+ 
+            this.goldChest = this.goldChests.create(4000, 398, 'chest_idle'); // platform at 430 (430 - 32 = 398)
             this.goldChest.body.setSize(30, 32);
             this.goldChest.refreshBody();
-
-            // Additional Crabby patrolling ground at the end
-            createCrabby(4150, 550);
-
+ 
+            // Enemies patrol on floor
+            createCrabby(900, 550);
+            createCrabby(2000, 550);
+            createCrabby(4100, 550);
+ 
             // Level 7 Finish Line at 4400 (stands on floor Y=584)
             this.finishFlag = this.physics.add.sprite(4400, 521.5, 'flag_1');
         } else if (this.currentLevel === 8) { // Stage 8: The Gauntlet of Traps
-            // Gaps are: (i > 300 && i < 600) || (i > 1000 && i < 1300) || (i > 1700 && i < 2000) || (i > 2500 && i < 2900) || (i > 3400 && i < 3800)
+            // Gaps are: (i > 500 && i < 800) || (i > 1400 && i < 1700) || (i > 2300 && i < 2600) || (i > 3200 && i < 3500)
             
             // Start platform
-            createWorldPlatform(200, 490, 2);
-
-            // Bridge platform over Gap1 (300-600)
-            createWorldPlatform(350, 490, 2); // Bridge to cross Gap1
-
-            // Box stack blocking the lower deck
-            createBreakable(450, 552, 'box');
-            createBreakable(450, 520, 'barrel');
-            createSpike(520, 584); // Spike hidden right after the box stack!
-
-            createWorldPlatform(700, 400, 4);
-            addAncientCoinsToPlatform(700, 400, 4);
-
-            // Double boxes blocking a cannon's fire
-            createBreakable(850, 552, 'box');
-            createBreakable(850, 520, 'box');
-            // Cannon firing left
-            createCannon(950, 550, 'left');
-
-            createWorldPlatform(1050, 310, 3);
+            createWorldPlatform(200, 480, 2);
+ 
+            // Bridge Gap1 (500-800)
+            createWorldPlatform(520, 490, 1); // Stepping stone 1
+            createWorldPlatform(650, 400, 1); // Stepping stone 2
             
-            // Platform with a barrel containing an Ancient Gold Coin
-            createWorldPlatform(1350, 380, 4);
-            // This barrel drops loot (Ancient Gold Coin) when destroyed!
-            createBreakable(1400, 348, 'barrel');
-            const coin = this.ancientCoins.create(1400, 300, 'ancient_coin');
-            coin.body.setSize(16, 16);
+            // Ledge platform on the other side
+            createWorldPlatform(850, 350, 3);
+            addAncientCoinsToPlatform(850, 350, 3);
+            createBreakable(900, 318, 'box');
 
-            createWorldPlatform(1600, 450, 2);
+            // Ground section after Gap1 (800-1400)
+            createWorldPlatform(950, 480, 1); // Step to get up
+            createCannon(1100, 550, 'left'); // Cannon firing left on floor
+            createWorldPlatform(1200, 380, 3);
+            createBreakable(1250, 348, 'barrel');
 
-            // Checkpoint flag on ground deck
-            createCheckpoint(2000, 521.5); // ground level checkpoint
+            // Bridge Gap2 (1400-1700)
+            createWorldPlatform(1450, 470, 1); // Stepping stone 1
+            createWorldPlatform(1600, 390, 1); // Stepping stone 2
 
-            // Vault platform with guarded box stack
-            createWorldPlatform(2200, 310, 4);
-            // Box stack guarding the Key
-            createBreakable(2200, 278, 'box');
-            createBreakable(2250, 278, 'box');
+            // Ground checkpoint in middle section (1700-2300)
+            createCheckpoint(1800, 521.5);
+            createWorldPlatform(1900, 490, 1); // Step up
+            createWorldPlatform(2000, 400, 3); // High platform
+            createCrabby(2050, 350);
+
+            // Bridge Gap3 (2300-2600) - Holds key
+            createWorldPlatform(2320, 430, 1); // Step on left
+            createWalkableTree(2450 + 16, 568, 3, 2); // Mast tree (leaves at Y=304)
+            createWorldPlatform(2580, 430, 1); // Step on right
             
             // Key and hidden enemy behind the boxes
             this.chestKey = this.masterKeys.create(2300, 280, 'master_key');
@@ -1613,174 +1618,167 @@ class GameScene extends Phaser.Scene {
             
             const ambusher = createFierceTooth(2350, 260); // Ambush player!
             ambusher.setVelocityX(-40);
+            
+            // Ground section after Gap3 (2600-3200)
+            createWorldPlatform(2700, 480, 1); // Step up
+            createCannon(2800, 550, 'right'); // Cannon firing right on floor
+            createWorldPlatform(2950, 370, 3); // Platform
+            addAncientCoinsToPlatform(2950, 370, 3);
 
-            // Platforms & meriam
-            // Bridge platform over Gap4 (2500-2900)
-            createWorldPlatform(2550, 490, 2); // Bridge to cross Gap4
+            // Bridge Gap4 (3200-3500)
+            createWorldPlatform(3280, 480, 1); // Stepping stone 1
+            createWorldPlatform(3400, 390, 1); // Stepping stone 2
 
-            createWorldPlatform(2700, 400, 3);
-            addAncientCoinsToPlatform(2700, 400, 3);
-
-            createWorldPlatform(3000, 300, 4);
-            createCannon(2950, 266, 'right'); // Cannon firing right from platform
-
-            // Tall stack of boxes blocking the final stretch
-            createWorldPlatform(3200, 480, 2);
-            createBreakable(3232, 448, 'box');
-            createBreakable(3232, 416, 'box');
-            createBreakable(3232, 384, 'box');
-
-            // Bridge platform over Gap5 (3400-3800)
-            createWorldPlatform(3500, 490, 2); // Bridge to cross Gap5
-            createWorldPlatform(3600, 420, 2);
-            createWorldPlatform(3800, 490, 5);
-
-            // final gold chest stands on the ground
-            this.goldChest = this.goldChests.create(4050, 552, 'chest_idle');
+            // End area (3500-4400)
+            createWorldPlatform(3600, 460, 1); // Step up
+            createWorldPlatform(3750, 370, 3); // Upper final platform
+            createWorldPlatform(3900, 450, 4); // Chest platform
+            
+            // Key and Chest
+            this.chestKey = this.masterKeys.create(2466, 240, 'master_key'); // Placed on top of the tree leaves
+            this.chestKey.body.setSize(24, 24);
+ 
+            this.goldChest = this.goldChests.create(3950, 418, 'chest_idle'); // platform at 450 (450 - 32 = 418)
             this.goldChest.body.setSize(30, 32);
             this.goldChest.refreshBody();
-
+ 
             // Enemies patrol
-            createCrabby(1450, 350);
-            createCrabby(3850, 450);
+            createCrabby(950, 550);
+            createCrabby(2850, 550);
             createCrabby(4150, 550);
-
+ 
             // Level 8 Finish Line at 4400 (stands on floor Y=584)
             this.finishFlag = this.physics.add.sprite(4400, 521.5, 'flag_1');
         } else if (this.currentLevel === 9) { // Stage 9: The Guarded Vault
-            // Gaps are: (i > 300 && i < 600) || (i > 1000 && i < 1300) || (i > 1700 && i < 2000) || (i > 2500 && i < 2900) || (i > 3400 && i < 3800)
+            // Gaps are: (i > 800 && i < 1100) || (i > 2400 && i < 2700)
             
             // Start platform
-            createWorldPlatform(200, 490, 2);
-
-            // Bridge platform over Gap1 (300-600)
-            createWorldPlatform(400, 490, 2); // Bridge to cross Gap1
-
-            // Left side multi-tier platform Labyrinth
-            createWorldPlatform(500, 450, 4);
-            addAncientCoinsToPlatform(500, 450, 4);
-
-            createWorldPlatform(800, 310, 5);
-            // Guarding enemy on tier 2 platform
-            createFierceTooth(900, 260);
-
-            createWorldPlatform(1100, 170, 4);
-            addAncientCoinsToPlatform(1100, 170, 4);
-            // Cannon firing left from top tier
-            createCannon(1200, 136, 'left');
-
-            createWorldPlatform(1500, 450, 3);
-            createBreakable(1550, 418, 'barrel');
-
-            // Checkpoint flag in the middle
-            createCheckpoint(2000, 521.5); // ground level checkpoint
-
-            // Vault Center multi-tier section (Kubah Tengah)
-            createWorldPlatform(2200, 450, 4);
-            createWorldPlatform(2200, 310, 4);
+            createWorldPlatform(200, 480, 2);
+ 
+            // Left side multi-tier platform Labyrinth (X = 400 - 800)
+            createWorldPlatform(400, 470, 3); // Tier 1
+            createWorldPlatform(550, 370, 3); // Tier 2
+            createWorldPlatform(700, 270, 3); // Tier 3
+            addAncientCoinsToPlatform(700, 270, 3);
+            createCannon(650, 236, 'right'); // Cannon firing right from top tier
+ 
+            // Bridge Gap1 (800-1100)
+            createWorldPlatform(900, 400, 1); // Stepping stone in gap
+            createWorldPlatform(1050, 310, 4); // Ledge on the other side
+            createFierceTooth(1100, 260);
+ 
+            // Ground section after Gap1 (1100-2400)
+            createCheckpoint(1200, 521.5); // ground checkpoint
+            createCannon(1450, 550, 'left'); // Cannon firing left on ground
             
-            // Top tier has key and guarding enemy
-            createWorldPlatform(2200, 170, 4);
-            createFierceTooth(2250, 120);
-
-            // Master Key at Y = 120 on platform Y = 170
-            this.chestKey = this.masterKeys.create(2200, 120, 'master_key');
+            createWorldPlatform(1500, 490, 1); // Step up
+            createWorldPlatform(1600, 400, 4); // Platform
+            createBreakable(1650, 368, 'barrel');
+ 
+            // Vault Center multi-tier section (Kubah Tengah) (X = 1800 - 2400)
+            createWorldPlatform(1850, 480, 1); // Step up
+            createWorldPlatform(1900, 400, 4); // Tier 1
+            createWorldPlatform(2050, 310, 4); // Tier 2
+            createWorldPlatform(2200, 220, 4); // Tier 3 - Holds Key!
+            createFierceTooth(2250, 170); // Guarding key on Tier 3
+ 
+            // Bridge Gap2 (2400-2700)
+            createWorldPlatform(2450, 410, 1); // Stepping stone 1
+            createWorldPlatform(2580, 410, 1); // Stepping stone 2
+ 
+            // Ground section after Gap2 (2700-4400)
+            createWorldPlatform(2750, 460, 1); // Step up
+            createWorldPlatform(2850, 370, 4); // Platform
+            createCannon(2800, 336, 'right'); // Cannon firing right from platform
+ 
+            createWorldPlatform(3300, 490, 1); // Step up
+            createWorldPlatform(3400, 400, 4); // Platform
+            addAncientCoinsToPlatform(3400, 400, 4);
+ 
+            createWorldPlatform(3800, 490, 1); // Step up final
+            createWorldPlatform(3900, 430, 4); // Chest platform
+            
+            // Key and Chest
+            this.chestKey = this.masterKeys.create(2200, 170, 'master_key'); // Placed on Tier 3
             this.chestKey.body.setSize(24, 24);
-
-            // Right side platforms
-            createWorldPlatform(2800, 310, 5);
-            // Guarding enemy on right tier 2 platform
-            createFierceTooth(2950, 260);
-            // Cannon firing right across the gap
-            createCannon(2750, 276, 'right');
-
-            createWorldPlatform(3300, 450, 4);
-            addAncientCoinsToPlatform(3300, 450, 4);
-
-            // Bridge platform over Gap5 (3400-3800)
-            createWorldPlatform(3500, 490, 2); // Bridge to cross Gap5
-
-            createWorldPlatform(3900, 450, 5);
-            
-            // final gold chest stands on the platform
-            this.goldChest = this.goldChests.create(4000, 418, 'chest_idle');
+ 
+            this.goldChest = this.goldChests.create(3950, 398, 'chest_idle'); // platform at 430 (430 - 32 = 398)
             this.goldChest.body.setSize(30, 32);
             this.goldChest.refreshBody();
-
+ 
             // Enemies patrol on floor
             createCrabby(750, 550);
             createCrabby(1600, 550);
             createCrabby(3500, 550);
-
+ 
             // Level 9 Finish Line at 4400 (stands on floor Y=584)
             this.finishFlag = this.physics.add.sprite(4400, 521.5, 'flag_1');
         } else { // Stage 10: The Ultimate Treasure Chamber (Grand Finale)
-            // Gaps are: (i > 300 && i < 600) || (i > 1000 && i < 1300) || (i > 1700 && i < 2000) || (i > 2500 && i < 2900) || (i > 3400 && i < 3800)
+            // Gaps are: (i > 400 && i < 800) || (i > 1300 && i < 1700) || (i > 2200 && i < 2600) || (i > 3100 && i < 3600)
             
             // Start platform
-            createWorldPlatform(200, 490, 2);
-
-            // Bridge platform over Gap1 (300-600)
-            createWorldPlatform(350, 490, 2); // Bridge to cross Gap1
-
-            // 1. Gauntlet section: breakables, spikes, and cannon
-            createBreakable(450, 552, 'box');
-            createBreakable(450, 520, 'box');
-            createSpike(520, 584);
-
-            createWorldPlatform(600, 400, 4);
-            addAncientCoinsToPlatform(600, 400, 4);
-
-            createBreakable(850, 552, 'box');
-            createCannon(950, 550, 'left');
-
-            // 2. Canopy climbing bridges (walkable trees over spikes)
-            createWalkableTree(1350, 568, 3, 2); // Top is at Y=304
-            createWalkableTree(1600, 568, 4, 3); // Top is at Y=224
-
-            // Checkpoint flag on ground deck
-            createCheckpoint(2000, 521.5);
-
-            // 3. Vault center vertical labyrinth
-            createWorldPlatform(2200, 450, 4);
-            createWorldPlatform(2200, 310, 4);
-            createWorldPlatform(2200, 170, 4);
+            createWorldPlatform(200, 480, 2);
+ 
+            // Bridge Gap1 (400-800)
+            createWorldPlatform(420, 480, 1); // Stepping stone 1
+            createWorldPlatform(550, 400, 1); // Stepping stone 2
+            createWorldPlatform(680, 480, 1); // Stepping stone 3
+ 
+            // Ground section (800-1300)
+            createWorldPlatform(850, 480, 1); // Step up
+            createWorldPlatform(950, 390, 4); // Platform
+            addAncientCoinsToPlatform(950, 390, 4);
+            createCannon(1150, 550, 'left'); // Cannon firing left on floor
+ 
+            // Bridge Gap2 (1300-1700) - canopy style
+            createWalkableTree(1420 + 16, 568, 3, 2); // Leaves at Y=304
+            createWalkableTree(1580 + 16, 568, 4, 3); // Leaves at Y=224
+ 
+            // Ground section (1700-2200)
+            createCheckpoint(1800, 521.5);
+            createWorldPlatform(1850, 490, 1); // Step up
+            createWorldPlatform(1950, 400, 4); // Platform
+            createCrabby(2000, 350);
+ 
+            // Bridge Gap3 (2200-2600) - vertical vault holds key
+            createWorldPlatform(2150, 460, 1); // Step up
+            createWorldPlatform(2220, 370, 1); // Step up
+            createWorldPlatform(2300, 280, 4); // Key platform
+            createFierceTooth(2350, 230); // Guarding key
+            createWalkableTree(2500 + 16, 568, 3, 2); // Leaves at Y=304 to climb/cross
+ 
+            // Ground section (2600-3100)
+            createWorldPlatform(2700, 480, 1); // Step up
+            createWorldPlatform(2800, 390, 4); // Platform
+            addAncientCoinsToPlatform(2800, 390, 4);
+            createCannon(2750, 276, 'right'); // Cannon firing right from platform
+ 
+            // Bridge Gap4 (3100-3600)
+            createWorldPlatform(3200, 480, 1); // Stepping stone 1
+            createWorldPlatform(3350, 390, 1); // Stepping stone 2
+            createWorldPlatform(3500, 480, 1); // Stepping stone 3
+ 
+            // End Area (3600-4400)
+            createSpike(3650, 584);
+            createSpike(3682, 584);
+            createSpike(3714, 584);
             
-            // Guarding enemy and Key in vault center
-            createFierceTooth(2250, 120); // Guards key platform
-
-            // Cannon firing across middle gap
-            createCannon(2050, 276, 'right');
-            createCannon(2800, 276, 'left');
-
-            // 4. Master Key on high platform
-            this.chestKey = this.masterKeys.create(2300, 120, 'master_key');
+            createWorldPlatform(3800, 490, 1); // Step up final
+            createWorldPlatform(3900, 430, 5); // Final Chest platform
+            
+            // Key and Chest
+            this.chestKey = this.masterKeys.create(2300, 230, 'master_key'); // Placed on vault platform
             this.chestKey.body.setSize(24, 24);
-
-            // Right side platforms
-            createWorldPlatform(3000, 350, 4);
-            createWalkableTree(3250, 568, 3, 2); // Top is at Y=304
-
-            // Bridge platform over Gap5 (3400-3800)
-            createWorldPlatform(3500, 490, 2); // Bridge to cross Gap5
-            
-            // Extra manual spikes at final stretch
-            createSpike(3600, 584);
-            createSpike(3632, 584);
-            createSpike(3664, 584);
-
-            createWorldPlatform(3800, 450, 5);
-
-            // final gold chest stands on the platform
-            this.goldChest = this.goldChests.create(3950, 418, 'chest_idle');
+ 
+            this.goldChest = this.goldChests.create(3950, 398, 'chest_idle'); // platform at 430 (430 - 32 = 398)
             this.goldChest.body.setSize(30, 32);
             this.goldChest.refreshBody();
-
+ 
             // Enemies patrol
-            createCrabby(650, 550);
-            createCrabby(1800, 550);
+            createCrabby(950, 550);
+            createCrabby(1850, 550);
             createCrabby(3850, 550);
-
+ 
             // Level 10 Finish Line at 4400 (stands on floor Y=584)
             this.finishFlag = this.physics.add.sprite(4400, 521.5, 'flag_1');
         }
@@ -1901,6 +1899,7 @@ class GameScene extends Phaser.Scene {
         this.cursors = this.input.keyboard.createCursorKeys();
         this.wasd = this.input.keyboard.addKeys({ up: 87, down: 83, left: 65, right: 68 });
         this.keyJ = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.J);
+        this.keyShift = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SHIFT);
 
         this.isTakingDamage = false;
 
@@ -2348,8 +2347,13 @@ class GameScene extends Phaser.Scene {
             this.player.setVelocity(0);
             this.player.setAccelerationX(0);
 
-            const animPrefix = 'attack_sword';
-            this.player.anims.play(animPrefix, true);
+            if (this.currentLevel >= 6) {
+                this.time.delayedCall(200, () => {
+                    this.player.isAttacking = false;
+                });
+            } else {
+                this.player.anims.play('attack_sword', true);
+            }
 
             // Spawn sword effect
             const effectX = this.player.x + (this.player.flipX ? -28 : 28);
@@ -2417,18 +2421,19 @@ class GameScene extends Phaser.Scene {
                 }
             });
 
-            this.player.once('animationcomplete-' + animPrefix, () => {
-                this.player.isAttacking = false;
-            });
+            if (this.currentLevel < 6) {
+                this.player.once('animationcomplete-attack_sword', () => {
+                    this.player.isAttacking = false;
+                });
+            }
         }
 
         if (this.player.isAttacking) return;
 
         const sprintUnlocked = this.registry.get('sprintUnlocked') === true;
         const isSprinting = sprintUnlocked && (
-            (this.cursors.shift && this.cursors.shift.isDown) ||
-            (Math.abs(joyX) > 0.8) ||
-            (padConnected && (Math.abs(padX) > 0.8 || padSprint)) ||
+            (this.keyShift && this.keyShift.isDown) ||
+            (padConnected && padSprint) ||
             (uiScene && uiScene.mobileSprint === true)
         );
         const accel = isSprinting ? 1800 : 1200;
