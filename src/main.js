@@ -6,6 +6,7 @@ class UIScene extends Phaser.Scene {
     }
 
     create() {
+        this.activePopup = null;
         this.input.addPointer(3); // Enable multi-touch pointers for UI buttons and joystick
         const uiScale = 2.5;
 
@@ -56,6 +57,7 @@ class UIScene extends Phaser.Scene {
         });
 
         gameScene.events.on('gameOver', () => {
+            this.activePopup = 'gameOver';
             const overlay = this.add.rectangle(400, 300, 800, 600, 0x000000, 0.6);
 
             // Pop-up container
@@ -107,6 +109,7 @@ class UIScene extends Phaser.Scene {
         });
 
         gameScene.events.on('levelComplete', () => {
+            this.activePopup = 'levelComplete';
             const overlay = this.add.rectangle(400, 300, 800, 600, 0x000000, 0.6);
             const currentLevel = gameScene.currentLevel || 1;
 
@@ -184,6 +187,7 @@ class UIScene extends Phaser.Scene {
         });
 
         gameScene.events.on('gameVictory', () => {
+            this.activePopup = 'gameVictory';
             const overlay = this.add.rectangle(400, 300, 800, 600, 0x000000, 0.7);
 
             // Pop-up container
@@ -476,6 +480,54 @@ class UIScene extends Phaser.Scene {
             const swordUnlocked = this.registry.get('swordUnlocked') === true;
             if (this.btnSprint) this.btnSprint.setVisible(sprintUnlocked);
             if (this.btnAttack) this.btnAttack.setVisible(swordUnlocked);
+
+            // Handle gamepad menu navigation
+            const pad = this.input.gamepad ? this.input.gamepad.getPad(0) : null;
+            if (pad && this.activePopup) {
+                const btnA = (pad.buttons[0] && pad.buttons[0].pressed) || pad.A;
+                const btnB = (pad.buttons[1] && pad.buttons[1].pressed) || pad.B || (pad.buttons[9] && pad.buttons[9].pressed); // Start/Options is buttons[9]
+                
+                if (btnA && !this.lastBtnAPressed) {
+                    if (this.activePopup === 'gameOver') {
+                        this.activePopup = null;
+                        gameScene.scene.restart({ level: gameScene.currentLevel, resetCheckpoint: false });
+                        this.scene.restart();
+                    } else if (this.activePopup === 'levelComplete') {
+                        let nextLevel = 1;
+                        const currentLevel = gameScene.currentLevel || 1;
+                        if (currentLevel === 1) nextLevel = 2;
+                        else if (currentLevel === 2) nextLevel = 3;
+                        else if (currentLevel === 3) nextLevel = 4;
+                        else if (currentLevel === 4) nextLevel = 5;
+                        else if (currentLevel === 5) nextLevel = 6;
+                        else if (currentLevel === 6) nextLevel = 7;
+                        else if (currentLevel === 7) nextLevel = 8;
+                        else if (currentLevel === 8) nextLevel = 9;
+                        else if (currentLevel === 9) nextLevel = 10;
+                        else if (currentLevel === 10) nextLevel = 1;
+                        
+                        this.activePopup = null;
+                        gameScene.scene.restart({ level: nextLevel, resetCheckpoint: true });
+                        this.scene.restart();
+                    } else if (this.activePopup === 'gameVictory') {
+                        this.activePopup = null;
+                        gameScene.scene.restart({ level: 1, resetCheckpoint: true });
+                        this.scene.restart();
+                    }
+                }
+                if (btnB && !this.lastBtnBPressed) {
+                    if (this.activePopup === 'levelComplete') {
+                        this.activePopup = null;
+                        gameScene.scene.restart({ level: gameScene.currentLevel, resetCheckpoint: true });
+                        this.scene.restart();
+                    }
+                }
+                this.lastBtnAPressed = btnA;
+                this.lastBtnBPressed = btnB;
+            } else if (pad) {
+                this.lastBtnAPressed = (pad.buttons[0] && pad.buttons[0].pressed) || pad.A;
+                this.lastBtnBPressed = (pad.buttons[1] && pad.buttons[1].pressed) || pad.B || (pad.buttons[9] && pad.buttons[9].pressed);
+            }
         }
     }
 }
@@ -2226,6 +2278,15 @@ class GameScene extends Phaser.Scene {
         const mobileJump = uiScene ? uiScene.mobileJump === true : false;
         const mobileAttack = uiScene ? uiScene.mobileAttack === true : false;
 
+        // Extract gamepad inputs if connected
+        const pad = this.input.gamepad ? this.input.gamepad.getPad(0) : null;
+        const padX = pad ? (pad.leftStick ? pad.leftStick.x : (pad.axes[0] ? pad.axes[0].getValue() : 0)) : 0;
+        const padLeft = pad ? (pad.left || padX < -0.15) : false;
+        const padRight = pad ? (pad.right || padX > 0.15) : false;
+        const padJump = pad ? ((pad.buttons[0] && pad.buttons[0].pressed) || pad.A) : false;
+        const padAttack = pad ? ((pad.buttons[2] && pad.buttons[2].pressed) || (pad.buttons[1] && pad.buttons[1].pressed) || pad.X || pad.B) : false;
+        const padSprint = pad ? ((pad.buttons[5] && pad.buttons[5].pressed) || (pad.buttons[7] && pad.buttons[7].pressed) || pad.R1 || pad.R2) : false;
+
         if (this.player.y > 650) {
             this.takeDamage();
             if (this.health > 0) {
@@ -2237,7 +2298,7 @@ class GameScene extends Phaser.Scene {
         const swordUnlocked = this.registry.get('swordUnlocked') === true;
 
         // Trigger sword attack
-        if ((Phaser.Input.Keyboard.JustDown(this.keyJ) || mobileAttack) && swordUnlocked && !this.player.isAttacking) {
+        if ((Phaser.Input.Keyboard.JustDown(this.keyJ) || mobileAttack || padAttack) && swordUnlocked && !this.player.isAttacking) {
             if (uiScene) uiScene.mobileAttack = false; // Consume the mobile attack button trigger
             this.player.isAttacking = true;
             this.player.setVelocity(0);
@@ -2323,6 +2384,7 @@ class GameScene extends Phaser.Scene {
         const isSprinting = sprintUnlocked && (
             (this.cursors.shift && this.cursors.shift.isDown) ||
             (Math.abs(joyX) > 0.8) ||
+            (Math.abs(padX) > 0.8 || padSprint) ||
             (uiScene && uiScene.mobileSprint === true)
         );
         const accel = isSprinting ? 1800 : 1200;
@@ -2391,14 +2453,16 @@ class GameScene extends Phaser.Scene {
 
         if (this.isTakingDamage) return;
 
-        if (this.cursors.left.isDown || this.wasd.left.isDown || joyX < -0.15) {
-            const targetAccel = joyX < -0.15 ? -accel * Math.abs(joyX) : -accel;
+        if (this.cursors.left.isDown || this.wasd.left.isDown || joyX < -0.15 || padLeft) {
+            const currentXInput = joyX < -0.15 ? joyX : (padLeft ? (padX < -0.15 ? padX : -1.0) : -1.0);
+            const targetAccel = accel * Math.abs(currentXInput) * -1;
             this.player.setAccelerationX(targetAccel);
             this.player.setFlipX(true);
             isMoving = true;
         }
-        else if (this.cursors.right.isDown || this.wasd.right.isDown || joyX > 0.15) {
-            const targetAccel = joyX > 0.15 ? accel * joyX : accel;
+        else if (this.cursors.right.isDown || this.wasd.right.isDown || joyX > 0.15 || padRight) {
+            const currentXInput = joyX > 0.15 ? joyX : (padRight ? (padX > 0.15 ? padX : 1.0) : 1.0);
+            const targetAccel = accel * Math.abs(currentXInput);
             this.player.setAccelerationX(targetAccel);
             this.player.setFlipX(false);
             isMoving = true;
@@ -2408,7 +2472,7 @@ class GameScene extends Phaser.Scene {
         }
 
         const isGrounded = this.player.body.blocked.down || this.player.body.touching.down;
-        if ((this.cursors.up.isDown || this.wasd.up.isDown || this.input.keyboard.checkDown(this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE)) || mobileJump) && isGrounded) {
+        if ((this.cursors.up.isDown || this.wasd.up.isDown || this.input.keyboard.checkDown(this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE)) || mobileJump || padJump) && isGrounded) {
             if (uiScene) uiScene.mobileJump = false; // Reset mobile jump trigger
             this.player.setVelocityY(jumpVelocity);
         }
@@ -2487,6 +2551,9 @@ const config = {
             gravity: { y: 1400 },
             debug: false
         }
+    },
+    input: {
+        gamepad: true
     },
     scene: [GameScene, UIScene],
     pixelArt: true,
