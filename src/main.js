@@ -482,10 +482,11 @@ class UIScene extends Phaser.Scene {
             if (this.btnAttack) this.btnAttack.setVisible(swordUnlocked);
 
             // Handle gamepad menu navigation
-            const pad = this.input.gamepad ? this.input.gamepad.getPad(0) : null;
-            if (pad && this.activePopup) {
-                const btnA = (pad.buttons[0] && pad.buttons[0].pressed) || pad.A;
-                const btnB = (pad.buttons[1] && pad.buttons[1].pressed) || pad.B || (pad.buttons[9] && pad.buttons[9].pressed); // Start/Options is buttons[9]
+            const pad = (this.input.gamepad && this.input.gamepad.total > 0) ? this.input.gamepad.getPad(0) : null;
+            const padConnected = pad && pad.connected;
+            if (padConnected && this.activePopup) {
+                const btnA = (pad.buttons[0] && pad.buttons[0].pressed) || false;
+                const btnB = (pad.buttons[1] && pad.buttons[1].pressed) || (pad.buttons[9] && pad.buttons[9].pressed) || false;
                 
                 if (btnA && !this.lastBtnAPressed) {
                     if (this.activePopup === 'gameOver') {
@@ -524,9 +525,9 @@ class UIScene extends Phaser.Scene {
                 }
                 this.lastBtnAPressed = btnA;
                 this.lastBtnBPressed = btnB;
-            } else if (pad) {
-                this.lastBtnAPressed = (pad.buttons[0] && pad.buttons[0].pressed) || pad.A;
-                this.lastBtnBPressed = (pad.buttons[1] && pad.buttons[1].pressed) || pad.B || (pad.buttons[9] && pad.buttons[9].pressed);
+            } else if (padConnected) {
+                this.lastBtnAPressed = (pad.buttons[0] && pad.buttons[0].pressed) || false;
+                this.lastBtnBPressed = (pad.buttons[1] && pad.buttons[1].pressed) || (pad.buttons[9] && pad.buttons[9].pressed) || false;
             }
         }
     }
@@ -1358,6 +1359,9 @@ class GameScene extends Phaser.Scene {
             // Starting platform (deck cabin)
             createPlatform(200, 490, 3);
             
+            // Bridge platform over Gap1 (300-600)
+            createPlatform(350, 490, 2); // Bridge to cross Gap1
+            
             // Upper deck structure
             createPlatform(500, 380, 5);
             addCoinsToPlatform(500, 380, 5);
@@ -1385,8 +1389,12 @@ class GameScene extends Phaser.Scene {
             createPlatform(2200, 310, 4);
             createFierceTooth(2250, 260);
 
+            // Bridge platforms over Gap4 (2500-2900)
+            createPlatform(2550, 480, 1); // Stepping stone for Gap4
+            createPlatform(2700, 450, 1); // Stepping stone for Gap4
+
             // Double vertical cannons (left/right firing)
-            createCannon(2650, 480, 'left');
+            createCannon(2650, 380, 'left');
             createCannon(2750, 360, 'right');
 
             createPlatform(2800, 420, 4);
@@ -1395,6 +1403,9 @@ class GameScene extends Phaser.Scene {
             // Main mast climbing section
             createPlatform(3100, 300, 3);
             createWalkableTree(3150 + 16, 568, 3, 2); // Tall mast to climb to the treasure platform!
+
+            // Bridge walkable tree over Gap5 (3400-3800)
+            createWalkableTree(3500 + 16, 568, 2, 1); // Walkable tree to cross Gap5
 
             // Final treasure deck platform
             createPlatform(3650, 250, 6);
@@ -1425,8 +1436,11 @@ class GameScene extends Phaser.Scene {
             createWorldPlatform(200, 480, 2);
             addAncientCoinsToPlatform(200, 480, 2);
 
-            createWorldPlatform(450, 400, 3);
-            createBreakable(500, 368, 'barrel');
+            // Bridge platforms over Gap1 (300-600)
+            createWorldPlatform(400, 490, 2); // Bridge to cross Gap1
+
+            createWorldPlatform(600, 400, 3);
+            createBreakable(650, 368, 'barrel');
 
             createWorldPlatform(750, 310, 4);
             addAncientCoinsToPlatform(750, 310, 4);
@@ -1450,14 +1464,20 @@ class GameScene extends Phaser.Scene {
             createWorldPlatform(2100, 280, 5);
             createFierceTooth(2200, 230); // Guards key!
 
-            createWorldPlatform(2650, 370, 5);
-            addAncientCoinsToPlatform(2650, 370, 5);
+            // Bridge platform over Gap4 (2500-2900)
+            createWorldPlatform(2550, 490, 2); // Bridge to cross Gap4
+
+            createWorldPlatform(2700, 370, 5);
+            addAncientCoinsToPlatform(2700, 370, 5);
 
             createWorldPlatform(2950, 480, 3);
             createBreakable(3000, 448, 'box');
 
             createWorldPlatform(3200, 390, 4);
             createCrabby(3250, 340);
+
+            // Bridge platform over Gap5 (3400-3800)
+            createWorldPlatform(3500, 490, 2); // Bridge to cross Gap5
 
             createWorldPlatform(3700, 260, 4);
             addAncientCoinsToPlatform(3700, 260, 4);
@@ -1486,6 +1506,9 @@ class GameScene extends Phaser.Scene {
             
             // Start platform
             createWorldPlatform(200, 490, 2);
+
+            // Bridge platform over Gap1 (300-600)
+            createWorldPlatform(350, 490, 2); // Bridge to cross Gap1 start
 
             // Series of trees above the gaps to cross
             // 300 to 600 gap (spikes at Y=584)
@@ -1547,6 +1570,9 @@ class GameScene extends Phaser.Scene {
             // Start platform
             createWorldPlatform(200, 490, 2);
 
+            // Bridge platform over Gap1 (300-600)
+            createWorldPlatform(350, 490, 2); // Bridge to cross Gap1
+
             // Box stack blocking the lower deck
             createBreakable(450, 552, 'box');
             createBreakable(450, 520, 'barrel');
@@ -1589,6 +1615,9 @@ class GameScene extends Phaser.Scene {
             ambusher.setVelocityX(-40);
 
             // Platforms & meriam
+            // Bridge platform over Gap4 (2500-2900)
+            createWorldPlatform(2550, 490, 2); // Bridge to cross Gap4
+
             createWorldPlatform(2700, 400, 3);
             addAncientCoinsToPlatform(2700, 400, 3);
 
@@ -1601,7 +1630,9 @@ class GameScene extends Phaser.Scene {
             createBreakable(3232, 416, 'box');
             createBreakable(3232, 384, 'box');
 
-            createWorldPlatform(3500, 420, 2);
+            // Bridge platform over Gap5 (3400-3800)
+            createWorldPlatform(3500, 490, 2); // Bridge to cross Gap5
+            createWorldPlatform(3600, 420, 2);
             createWorldPlatform(3800, 490, 5);
 
             // final gold chest stands on the ground
@@ -1621,6 +1652,9 @@ class GameScene extends Phaser.Scene {
             
             // Start platform
             createWorldPlatform(200, 490, 2);
+
+            // Bridge platform over Gap1 (300-600)
+            createWorldPlatform(400, 490, 2); // Bridge to cross Gap1
 
             // Left side multi-tier platform Labyrinth
             createWorldPlatform(500, 450, 4);
@@ -1663,6 +1697,9 @@ class GameScene extends Phaser.Scene {
             createWorldPlatform(3300, 450, 4);
             addAncientCoinsToPlatform(3300, 450, 4);
 
+            // Bridge platform over Gap5 (3400-3800)
+            createWorldPlatform(3500, 490, 2); // Bridge to cross Gap5
+
             createWorldPlatform(3900, 450, 5);
             
             // final gold chest stands on the platform
@@ -1682,6 +1719,9 @@ class GameScene extends Phaser.Scene {
             
             // Start platform
             createWorldPlatform(200, 490, 2);
+
+            // Bridge platform over Gap1 (300-600)
+            createWorldPlatform(350, 490, 2); // Bridge to cross Gap1
 
             // 1. Gauntlet section: breakables, spikes, and cannon
             createBreakable(450, 552, 'box');
@@ -1720,6 +1760,9 @@ class GameScene extends Phaser.Scene {
             // Right side platforms
             createWorldPlatform(3000, 350, 4);
             createWalkableTree(3250, 568, 3, 2); // Top is at Y=304
+
+            // Bridge platform over Gap5 (3400-3800)
+            createWorldPlatform(3500, 490, 2); // Bridge to cross Gap5
             
             // Extra manual spikes at final stretch
             createSpike(3600, 584);
@@ -2279,13 +2322,14 @@ class GameScene extends Phaser.Scene {
         const mobileAttack = uiScene ? uiScene.mobileAttack === true : false;
 
         // Extract gamepad inputs if connected
-        const pad = this.input.gamepad ? this.input.gamepad.getPad(0) : null;
-        const padX = pad ? (pad.leftStick ? pad.leftStick.x : (pad.axes[0] ? pad.axes[0].getValue() : 0)) : 0;
-        const padLeft = pad ? (pad.left || padX < -0.15) : false;
-        const padRight = pad ? (pad.right || padX > 0.15) : false;
-        const padJump = pad ? ((pad.buttons[0] && pad.buttons[0].pressed) || pad.A) : false;
-        const padAttack = pad ? ((pad.buttons[2] && pad.buttons[2].pressed) || (pad.buttons[1] && pad.buttons[1].pressed) || pad.X || pad.B) : false;
-        const padSprint = pad ? ((pad.buttons[5] && pad.buttons[5].pressed) || (pad.buttons[7] && pad.buttons[7].pressed) || pad.R1 || pad.R2) : false;
+        const pad = (this.input.gamepad && this.input.gamepad.total > 0) ? this.input.gamepad.getPad(0) : null;
+        const padConnected = pad && pad.connected;
+        const padX = padConnected ? (pad.leftStick ? pad.leftStick.x : (pad.axes[0] ? pad.axes[0].getValue() : 0)) : 0;
+        const padLeft = padConnected ? (pad.left || padX < -0.15) : false;
+        const padRight = padConnected ? (pad.right || padX > 0.15) : false;
+        const padJump = padConnected ? ((pad.buttons[0] && pad.buttons[0].pressed) || false) : false;
+        const padAttack = padConnected ? ((pad.buttons[2] && pad.buttons[2].pressed) || (pad.buttons[3] && pad.buttons[3].pressed) || false) : false;
+        const padSprint = padConnected ? ((pad.buttons[5] && pad.buttons[5].pressed) || (pad.buttons[7] && pad.buttons[7].pressed) || false) : false;
 
         if (this.player.y > 650) {
             this.takeDamage();
@@ -2384,7 +2428,7 @@ class GameScene extends Phaser.Scene {
         const isSprinting = sprintUnlocked && (
             (this.cursors.shift && this.cursors.shift.isDown) ||
             (Math.abs(joyX) > 0.8) ||
-            (Math.abs(padX) > 0.8 || padSprint) ||
+            (padConnected && (Math.abs(padX) > 0.8 || padSprint)) ||
             (uiScene && uiScene.mobileSprint === true)
         );
         const accel = isSprinting ? 1800 : 1200;
