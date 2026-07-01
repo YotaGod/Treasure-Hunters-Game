@@ -78,7 +78,7 @@ class UIScene extends Phaser.Scene {
             btnUlangi.on('pointerover', () => btnUlangi.setTint(0xdddddd));
             btnUlangi.on('pointerout', () => btnUlangi.clearTint());
             btnUlangi.on('pointerdown', () => {
-                gameScene.scene.restart({ level: gameScene.currentLevel, resetCheckpoint: true });
+                gameScene.scene.restart({ level: gameScene.currentLevel, resetCheckpoint: false });
                 this.scene.restart();
             });
 
@@ -126,7 +126,13 @@ class UIScene extends Phaser.Scene {
             if (currentLevel === 1) nextLevel = 2;
             else if (currentLevel === 2) nextLevel = 3;
             else if (currentLevel === 3) nextLevel = 4;
-            else if (currentLevel === 4) nextLevel = 1;
+            else if (currentLevel === 4) nextLevel = 5;
+            else if (currentLevel === 5) nextLevel = 6;
+            else if (currentLevel === 6) nextLevel = 7;
+            else if (currentLevel === 7) nextLevel = 8;
+            else if (currentLevel === 8) nextLevel = 9;
+            else if (currentLevel === 9) nextLevel = 10;
+            else if (currentLevel === 10) nextLevel = 1;
 
             const btnSelanjutnya = this.add.image(0, -35, 'ui_button').setScale(2.1, 0.6).setInteractive({ useHandCursor: true });
             const txtSelanjutnya = this.add.text(0, -35, 'Stage Selanjutnya', {
@@ -173,6 +179,56 @@ class UIScene extends Phaser.Scene {
                 targets: popup,
                 scale: 1,
                 duration: 350,
+                ease: 'Back.easeOut'
+            });
+        });
+
+        gameScene.events.on('gameVictory', () => {
+            const overlay = this.add.rectangle(400, 300, 800, 600, 0x000000, 0.7);
+
+            // Pop-up container
+            const popup = this.add.container(400, 300);
+
+            // Wooden board panel (scaled up for final victory!)
+            const panel = this.add.image(0, 0, 'ui_board').setScale(3.0);
+
+            // Title
+            const title = this.add.text(0, -115, 'TAMAT!', {
+                fontSize: '36px', fill: '#FFD700', fontFamily: 'Arial, sans-serif', fontStyle: 'bold'
+            }).setOrigin(0.5).setStroke('#000', 5);
+
+            // Message
+            const msg = this.add.text(0, -60, 'Selamat!\nKamu Berhasil Menemukan\nSemua Harta Karun!', {
+                fontSize: '18px', fill: '#FFF', fontFamily: 'Arial, sans-serif', fontStyle: 'bold', align: 'center'
+            }).setOrigin(0.5).setStroke('#000', 3);
+
+            // Score Display
+            const finalScoreText = this.add.text(0, 5, `Total Skor: ${gameScene.score}`, {
+                fontSize: '20px', fill: '#00FF00', fontFamily: 'Arial, sans-serif', fontStyle: 'bold'
+            }).setOrigin(0.5).setStroke('#000', 3);
+
+            // "Menu Utama" Button
+            const btnMenu = this.add.image(0, 75, 'ui_button').setScale(2.5, 0.7).setInteractive({ useHandCursor: true });
+            const txtMenu = this.add.text(0, 75, 'Menu Utama', {
+                fontSize: '16px', fill: '#000', fontFamily: 'Arial, sans-serif', fontStyle: 'bold'
+            }).setOrigin(0.5);
+
+            btnMenu.on('pointerover', () => btnMenu.setTint(0xdddddd));
+            btnMenu.on('pointerout', () => btnMenu.clearTint());
+            btnMenu.on('pointerdown', () => {
+                // Restart back to level 1 and reset all checkpoint data
+                gameScene.scene.restart({ level: 1, resetCheckpoint: true });
+                this.scene.restart();
+            });
+
+            popup.add([panel, title, msg, finalScoreText, btnMenu, txtMenu]);
+
+            // Animation
+            popup.setScale(0);
+            this.tweens.add({
+                targets: popup,
+                scale: 1,
+                duration: 500,
                 ease: 'Back.easeOut'
             });
         });
@@ -539,8 +595,18 @@ class GameScene extends Phaser.Scene {
         this.load.image('golden_skull', 'assets/Pirate Treasure/Golden Skull/01.png');
 
         this.load.spritesheet('terrain', 'assets/environment/Terrain/Terrain (32x32).png', { frameWidth: 32, frameHeight: 32 });
+        this.load.spritesheet('world_terrain', 'assets/tileset/world_tileset.png', { frameWidth: 32, frameHeight: 32 });
         this.load.image('bg_color', 'assets/environment/Background/BG Image.png');
         this.load.image('bg_clouds', 'assets/environment/Background/Big Clouds.png');
+
+        // New character animations
+        for (let i = 1; i <= 26; i++) this.load.image(`new_idle_${i}`, `assets/character/player_idle/${i}.png`);
+        for (let i = 1; i <= 14; i++) this.load.image(`new_run_${i}`, `assets/character/player_run/${i}.png`);
+        for (let i = 1; i <= 4; i++) this.load.image(`new_jump_${i}`, `assets/character/player_jump/${i}.png`);
+
+        // New collectibles
+        this.load.image('ancient_coin', 'assets/collection/Coin.png');
+        this.load.image('master_key', 'assets/collection/Key.png');
 
         // Back Palm Trees
         for (let i = 1; i <= 4; i++) {
@@ -598,6 +664,20 @@ class GameScene extends Phaser.Scene {
 
         // Only create animations if they don't exist
         if (!this.anims.exists('idle')) {
+            // New character animations
+            const newIdleFrames = [];
+            for (let i = 1; i <= 26; i++) newIdleFrames.push({ key: `new_idle_${i}` });
+            this.anims.create({ key: 'new_player_idle', frames: newIdleFrames, frameRate: 15, repeat: -1 });
+
+            const newRunFrames = [];
+            for (let i = 1; i <= 14; i++) newRunFrames.push({ key: `new_run_${i}` });
+            this.anims.create({ key: 'new_player_run', frames: newRunFrames, frameRate: 15, repeat: -1 });
+
+            const newJumpFrames = [];
+            for (let i = 1; i <= 4; i++) newJumpFrames.push({ key: `new_jump_${i}` });
+            this.anims.create({ key: 'new_player_jump', frames: newJumpFrames.slice(0, 3), frameRate: 10, repeat: 0 });
+            this.anims.create({ key: 'new_player_fall', frames: [{ key: 'new_jump_4' }], frameRate: 10, repeat: -1 });
+
             this.anims.create({ key: 'idle', frames: [{ key: 'idle_1' }, { key: 'idle_2' }, { key: 'idle_3' }, { key: 'idle_4' }, { key: 'idle_5' }], frameRate: 10, repeat: -1 });
             this.anims.create({ key: 'run', frames: [{ key: 'run_1' }, { key: 'run_2' }, { key: 'run_3' }, { key: 'run_4' }, { key: 'run_5' }, { key: 'run_6' }], frameRate: 12, repeat: -1 });
             this.anims.create({ key: 'jump', frames: [{ key: 'jump_1' }, { key: 'jump_2' }, { key: 'jump_3' }], frameRate: 10, repeat: 0 });
@@ -767,22 +847,29 @@ class GameScene extends Phaser.Scene {
                 }
                 continue;
             }
-            this.platforms.create(i + 16, 584, 'terrain', 1);
+            if (this.currentLevel >= 6) {
+                this.platforms.create(i + 16, 584, 'world_terrain', 1);
+            } else {
+                this.platforms.create(i + 16, 584, 'terrain', 1);
+            }
         }
 
         // Left boundary wall
         for (let y = 584 - 32; y >= -32; y -= 32) {
-            this.platforms.create(16, y, 'terrain', 18);
+            const wallTexture = this.currentLevel >= 6 ? 'world_terrain' : 'terrain';
+            this.platforms.create(16, y, wallTexture, 18);
         }
 
         // Create groups
         this.coins = this.physics.add.group({ allowGravity: false, immovable: true });
+        this.ancientCoins = this.physics.add.group({ allowGravity: false, immovable: true });
         this.enemies = this.physics.add.group();
         this.breakables = this.physics.add.group({ allowGravity: true, immovable: true });
         this.cannonBalls = this.physics.add.group({ allowGravity: false });
         this.loots = this.physics.add.group({ allowGravity: true });
         this.goldChests = this.physics.add.staticGroup();
         this.chestKeys = this.physics.add.group({ allowGravity: false, immovable: true });
+        this.masterKeys = this.physics.add.group({ allowGravity: false, immovable: true });
 
         // Helper to create a walkable palm tree with solid leaves at the top
         const createWalkableTree = (x, y, trunkCount, coinCount = 0) => {
@@ -826,6 +913,22 @@ class GameScene extends Phaser.Scene {
                 if (i === 0) frameIndex = 0;
                 else if (i === width - 1) frameIndex = 2;
                 this.platforms.create(x + (i * 32), y, 'terrain', frameIndex);
+            }
+        };
+
+        const createWorldPlatform = (x, y, width) => {
+            for (let i = 0; i < width; i++) {
+                let frameIndex = 1; // Middle tile
+                if (i === 0) frameIndex = 0; // Left tile
+                else if (i === width - 1) frameIndex = 2; // Right tile
+                this.platforms.create(x + (i * 32), y, 'world_terrain', frameIndex);
+            }
+        };
+
+        const addAncientCoinsToPlatform = (startX, y, count) => {
+            for (let i = 0; i < count; i++) {
+                const coin = this.ancientCoins.create(startX + (i * 32), y - 18, 'ancient_coin');
+                coin.body.setSize(16, 16);
             }
         };
 
@@ -917,6 +1020,17 @@ class GameScene extends Phaser.Scene {
         // Create Checkpoint group
         this.checkpoints = this.physics.add.staticGroup();
 
+        const createCheckpoint = (x, y) => {
+            const cp = this.checkpoints.create(x, y, 'flag_1');
+            if (this.checkpointX === x) {
+                cp.setAlpha(1).clearTint();
+                cp.play('flag_anim');
+            } else {
+                cp.setAlpha(0.5).setTint(0x5555ff);
+            }
+            return cp;
+        };
+
         if (this.currentLevel === 1) {
             // Level 1 platforms
             createPlatform(250, 490, 3);
@@ -960,7 +1074,7 @@ class GameScene extends Phaser.Scene {
             addCoinsToPlatform(3300, 360, 5);
 
             // Level 1 Checkpoint at 1700
-            this.checkpoints.create(1700, 337.5, 'flag_1').setAlpha(0.5).setTint(0x5555ff);
+            createCheckpoint(1700, 337.5);
 
             // Level 1 Finish Line at 4000
             this.finishFlag = this.physics.add.sprite(4000, 427.5, 'flag_1');
@@ -1020,7 +1134,7 @@ class GameScene extends Phaser.Scene {
             addCoinsToPlatform(4000, 450, 6);
 
             // Level 2 Checkpoint at 1850
-            this.checkpoints.create(1850, 337.5, 'flag_1').setAlpha(0.5).setTint(0x5555ff);
+            createCheckpoint(1850, 337.5);
 
             // Level 2 Finish Line at 4100
             this.finishFlag = this.physics.add.sprite(4100, 387.5, 'flag_1');
@@ -1081,7 +1195,7 @@ class GameScene extends Phaser.Scene {
             createPlatform(3750, 450, 4);
 
             // Level 3 Checkpoint at 1850
-            this.checkpoints.create(1850, 387.5, 'flag_1').setAlpha(0.5).setTint(0x5555ff);
+            createCheckpoint(1850, 387.5);
 
             // Level 3 Finish Line at 4100 (stands on floor Y=584)
             this.finishFlag = this.physics.add.sprite(4100, 521.5, 'flag_1');
@@ -1100,7 +1214,7 @@ class GameScene extends Phaser.Scene {
             addCoinsToPlatform(1350, 400, 6);
             addCoinsToPlatform(1600, 310, 2);
             addCoinsToPlatform(2950, 450, 7);
-        } else { // Stage 4: Chest & Key + Fierce Tooth
+        } else if (this.currentLevel === 4) { // Stage 4: Chest & Key + Fierce Tooth
             // Level 4 platforms
             createPlatform(200, 480, 2);
 
@@ -1182,9 +1296,397 @@ class GameScene extends Phaser.Scene {
             this.goldChest.refreshBody();
 
             // Level 4 Checkpoint at 1850
-            this.checkpoints.create(1850, 310, 'flag_1').setAlpha(0.5).setTint(0x5555ff);
+            createCheckpoint(1850, 310);
 
             // Level 4 Finish Line at 4400 (stands on floor Y=584)
+            this.finishFlag = this.physics.add.sprite(4400, 521.5, 'flag_1');
+        } else if (this.currentLevel === 5) { // Stage 5: The Pirate Ship Finale
+            // Gaps are: (i > 300 && i < 600) || (i > 1000 && i < 1300) || (i > 1700 && i < 2000) || (i > 2500 && i < 2900) || (i > 3400 && i < 3800)
+            
+            // Starting platform (deck cabin)
+            createPlatform(200, 490, 3);
+            
+            // Upper deck structure
+            createPlatform(500, 380, 5);
+            addCoinsToPlatform(500, 380, 5);
+
+            createPlatform(900, 420, 3);
+            createBreakable(950, 388, 'box');
+            
+            createPlatform(1100, 310, 4);
+            addCoinsToPlatform(1100, 310, 4);
+
+            // Stepping planks over a large gap
+            createPlatform(1550, 450, 1);
+            createPlatform(1750, 380, 1);
+            createPlatform(1950, 450, 2);
+            
+            // Checkpoint flag in the middle
+            createCheckpoint(2000, 387.5); // platform height is 450 (450 - 62.5 = 387.5)
+            
+            // Upper rigging / mast platform
+            createPlatform(1700, 230, 6);
+            addCoinsToPlatform(1700, 230, 6);
+            createWalkableTree(1800 + 16, 568, 2, 1); // Walkable tree as mast to climb to upper platform
+
+            // Middle section ship deck
+            createPlatform(2200, 310, 4);
+            createFierceTooth(2250, 260);
+
+            // Double vertical cannons (left/right firing)
+            createCannon(2650, 480, 'left');
+            createCannon(2750, 360, 'right');
+
+            createPlatform(2800, 420, 4);
+            addCoinsToPlatform(2800, 420, 4);
+
+            // Main mast climbing section
+            createPlatform(3100, 300, 3);
+            createWalkableTree(3150 + 16, 568, 3, 2); // Tall mast to climb to the treasure platform!
+
+            // Final treasure deck platform
+            createPlatform(3650, 250, 6);
+            addCoinsToPlatform(3650, 250, 6);
+            createFierceTooth(3750, 200); // Guarding key at Y=250
+
+            createPlatform(3700, 450, 5);
+            
+            // Key and Chest
+            this.chestKey = this.chestKeys.create(3800, 200, 'chest_key_1');
+            this.chestKey.play('chest_key_idle');
+
+            this.goldChest = this.goldChests.create(4100, 418, 'chest_idle'); // platform at 450 (450 - 32 = 418)
+            this.goldChest.body.setSize(30, 32);
+            this.goldChest.refreshBody();
+
+            // Enemies patrol
+            createCrabby(850, 550);
+            createCrabby(2850, 380);
+            createCrabby(3800, 550);
+
+            // Level 5 Finish Line at 4400 (stands on floor Y=584)
+            this.finishFlag = this.physics.add.sprite(4400, 521.5, 'flag_1');
+        } else if (this.currentLevel === 6) { // Stage 6: Arrival at Uncharted Island
+            // Gaps are: (i > 300 && i < 600) || (i > 1000 && i < 1300) || (i > 1700 && i < 2000) || (i > 2500 && i < 2900) || (i > 3400 && i < 3800)
+            
+            // World 2 terrain elements using createWorldPlatform
+            createWorldPlatform(200, 480, 2);
+            addAncientCoinsToPlatform(200, 480, 2);
+
+            createWorldPlatform(450, 400, 3);
+            createBreakable(500, 368, 'barrel');
+
+            createWorldPlatform(750, 310, 4);
+            addAncientCoinsToPlatform(750, 310, 4);
+
+            createWorldPlatform(1000, 420, 3);
+            createFierceTooth(1050, 370);
+
+            // Rigging and climbing sections (trees acting as climbs)
+            createWorldPlatform(1300, 330, 4);
+            createWalkableTree(1450 + 16, 568, 2, 2); // Walkable tree to climb to upper platforms
+
+            createWorldPlatform(1600, 250, 4);
+            addAncientCoinsToPlatform(1600, 250, 4);
+
+            createWorldPlatform(1850, 370, 3);
+            
+            // Checkpoint flag
+            createCheckpoint(1850, 307.5); // platform height is 370 (370 - 62.5 = 307.5)
+
+            // Heavy combat deck (Fierce Tooth and Crabby guarding)
+            createWorldPlatform(2100, 280, 5);
+            createFierceTooth(2200, 230); // Guards key!
+
+            createWorldPlatform(2650, 370, 5);
+            addAncientCoinsToPlatform(2650, 370, 5);
+
+            createWorldPlatform(2950, 480, 3);
+            createBreakable(3000, 448, 'box');
+
+            createWorldPlatform(3200, 390, 4);
+            createCrabby(3250, 340);
+
+            createWorldPlatform(3700, 260, 4);
+            addAncientCoinsToPlatform(3700, 260, 4);
+
+            createWorldPlatform(3700, 400, 3);
+            createWorldPlatform(3900, 490, 5);
+
+            // Chest & Key placement
+            this.chestKey = this.masterKeys.create(2200, 230, 'master_key'); // Place the Master Key!
+            this.chestKey.body.setSize(24, 24);
+
+            this.goldChest = this.goldChests.create(4000, 458, 'chest_idle'); // platform at 490 (490 - 32 = 458)
+            this.goldChest.body.setSize(30, 32);
+            this.goldChest.refreshBody();
+
+            // Enemies patrol
+            createCrabby(800, 550);
+            createCrabby(2800, 550);
+            createCrabby(4100, 550);
+
+            // Level 6 Finish Line at 4400 (stands on floor Y=584)
+            this.finishFlag = this.physics.add.sprite(4400, 521.5, 'flag_1');
+        } else if (this.currentLevel === 7) { // Stage 7: The Treacherous Canopy
+            // World 2 terrain elements using createWorldPlatform
+            // Gaps are: (i > 300 && i < 600) || (i > 1000 && i < 1300) || (i > 1700 && i < 2000) || (i > 2500 && i < 2900) || (i > 3400 && i < 3800)
+            
+            // Start platform
+            createWorldPlatform(200, 490, 2);
+
+            // Series of trees above the gaps to cross
+            // 300 to 600 gap (spikes at Y=584)
+            createWalkableTree(500, 568, 3, 2); // Top is at Y=304
+            addAncientCoinsToPlatform(485, 240, 2);
+
+            createWorldPlatform(700, 380, 4);
+            createCrabby(750, 330);
+
+            // 1000 to 1300 gap (spikes at Y=584)
+            createWalkableTree(1150, 568, 4, 3); // Top is at Y=224
+            addAncientCoinsToPlatform(1135, 160, 2);
+
+            // Cannon firing at the player near tree 1150
+            createCannon(900, 260, 'right');
+
+            createWorldPlatform(1350, 330, 4);
+            createBreakable(1400, 298, 'barrel');
+
+            // 1700 to 2000 gap (spikes at Y=584)
+            createWalkableTree(1850, 568, 3, 2); // Top is at Y=304
+
+            createWorldPlatform(2100, 310, 4);
+            // Checkpoint flag on this middle deck
+            createCheckpoint(2100, 247.5); // platform height is 310 (310 - 62.5 = 247.5)
+            createFierceTooth(2200, 260);
+
+            // 2500 to 2900 gap (bottomless pit!)
+            createWalkableTree(2600, 568, 4, 0); // Top is at Y=224, holds the Master Key!
+            // Cannon firing across this pit
+            createCannon(2450, 260, 'right');
+
+            createWorldPlatform(2950, 350, 4);
+            createBreakable(3000, 318, 'box');
+
+            createWalkableTree(3150, 568, 3, 2); // Top is at Y=304
+
+            // 3400 to 3800 gap (bottomless pit!)
+            createWalkableTree(3550, 568, 2, 2); // Top is at Y=384
+
+            createWorldPlatform(3900, 450, 5);
+
+            // Key and Chest
+            this.chestKey = this.masterKeys.create(2600, 184, 'master_key'); // 224 - 40 = 184 (4 trunks top palm leaf)
+            this.chestKey.body.setSize(24, 24);
+
+            this.goldChest = this.goldChests.create(4100, 418, 'chest_idle'); // platform at 450 (450 - 32 = 418)
+            this.goldChest.body.setSize(30, 32);
+            this.goldChest.refreshBody();
+
+            // Additional Crabby patrolling ground at the end
+            createCrabby(4150, 550);
+
+            // Level 7 Finish Line at 4400 (stands on floor Y=584)
+            this.finishFlag = this.physics.add.sprite(4400, 521.5, 'flag_1');
+        } else if (this.currentLevel === 8) { // Stage 8: The Gauntlet of Traps
+            // Gaps are: (i > 300 && i < 600) || (i > 1000 && i < 1300) || (i > 1700 && i < 2000) || (i > 2500 && i < 2900) || (i > 3400 && i < 3800)
+            
+            // Start platform
+            createWorldPlatform(200, 490, 2);
+
+            // Box stack blocking the lower deck
+            createBreakable(450, 552, 'box');
+            createBreakable(450, 520, 'barrel');
+            createSpike(520, 584); // Spike hidden right after the box stack!
+
+            createWorldPlatform(700, 400, 4);
+            addAncientCoinsToPlatform(700, 400, 4);
+
+            // Double boxes blocking a cannon's fire
+            createBreakable(850, 552, 'box');
+            createBreakable(850, 520, 'box');
+            // Cannon firing left
+            createCannon(950, 550, 'left');
+
+            createWorldPlatform(1050, 310, 3);
+            
+            // Platform with a barrel containing an Ancient Gold Coin
+            createWorldPlatform(1350, 380, 4);
+            // This barrel drops loot (Ancient Gold Coin) when destroyed!
+            createBreakable(1400, 348, 'barrel');
+            const coin = this.ancientCoins.create(1400, 300, 'ancient_coin');
+            coin.body.setSize(16, 16);
+
+            createWorldPlatform(1600, 450, 2);
+
+            // Checkpoint flag on ground deck
+            createCheckpoint(2000, 521.5); // ground level checkpoint
+
+            // Vault platform with guarded box stack
+            createWorldPlatform(2200, 310, 4);
+            // Box stack guarding the Key
+            createBreakable(2200, 278, 'box');
+            createBreakable(2250, 278, 'box');
+            
+            // Key and hidden enemy behind the boxes
+            this.chestKey = this.masterKeys.create(2300, 280, 'master_key');
+            this.chestKey.body.setSize(24, 24);
+            
+            const ambusher = createFierceTooth(2350, 260); // Ambush player!
+            ambusher.setVelocityX(-40);
+
+            // Platforms & meriam
+            createWorldPlatform(2700, 400, 3);
+            addAncientCoinsToPlatform(2700, 400, 3);
+
+            createWorldPlatform(3000, 300, 4);
+            createCannon(2950, 266, 'right'); // Cannon firing right from platform
+
+            // Tall stack of boxes blocking the final stretch
+            createWorldPlatform(3200, 480, 2);
+            createBreakable(3232, 448, 'box');
+            createBreakable(3232, 416, 'box');
+            createBreakable(3232, 384, 'box');
+
+            createWorldPlatform(3500, 420, 2);
+            createWorldPlatform(3800, 490, 5);
+
+            // final gold chest stands on the ground
+            this.goldChest = this.goldChests.create(4050, 552, 'chest_idle');
+            this.goldChest.body.setSize(30, 32);
+            this.goldChest.refreshBody();
+
+            // Enemies patrol
+            createCrabby(1450, 350);
+            createCrabby(3850, 450);
+            createCrabby(4150, 550);
+
+            // Level 8 Finish Line at 4400 (stands on floor Y=584)
+            this.finishFlag = this.physics.add.sprite(4400, 521.5, 'flag_1');
+        } else if (this.currentLevel === 9) { // Stage 9: The Guarded Vault
+            // Gaps are: (i > 300 && i < 600) || (i > 1000 && i < 1300) || (i > 1700 && i < 2000) || (i > 2500 && i < 2900) || (i > 3400 && i < 3800)
+            
+            // Start platform
+            createWorldPlatform(200, 490, 2);
+
+            // Left side multi-tier platform Labyrinth
+            createWorldPlatform(500, 450, 4);
+            addAncientCoinsToPlatform(500, 450, 4);
+
+            createWorldPlatform(800, 310, 5);
+            // Guarding enemy on tier 2 platform
+            createFierceTooth(900, 260);
+
+            createWorldPlatform(1100, 170, 4);
+            addAncientCoinsToPlatform(1100, 170, 4);
+            // Cannon firing left from top tier
+            createCannon(1200, 136, 'left');
+
+            createWorldPlatform(1500, 450, 3);
+            createBreakable(1550, 418, 'barrel');
+
+            // Checkpoint flag in the middle
+            createCheckpoint(2000, 521.5); // ground level checkpoint
+
+            // Vault Center multi-tier section (Kubah Tengah)
+            createWorldPlatform(2200, 450, 4);
+            createWorldPlatform(2200, 310, 4);
+            
+            // Top tier has key and guarding enemy
+            createWorldPlatform(2200, 170, 4);
+            createFierceTooth(2250, 120);
+
+            // Master Key at Y = 120 on platform Y = 170
+            this.chestKey = this.masterKeys.create(2200, 120, 'master_key');
+            this.chestKey.body.setSize(24, 24);
+
+            // Right side platforms
+            createWorldPlatform(2800, 310, 5);
+            // Guarding enemy on right tier 2 platform
+            createFierceTooth(2950, 260);
+            // Cannon firing right across the gap
+            createCannon(2750, 276, 'right');
+
+            createWorldPlatform(3300, 450, 4);
+            addAncientCoinsToPlatform(3300, 450, 4);
+
+            createWorldPlatform(3900, 450, 5);
+            
+            // final gold chest stands on the platform
+            this.goldChest = this.goldChests.create(4000, 418, 'chest_idle');
+            this.goldChest.body.setSize(30, 32);
+            this.goldChest.refreshBody();
+
+            // Enemies patrol on floor
+            createCrabby(750, 550);
+            createCrabby(1600, 550);
+            createCrabby(3500, 550);
+
+            // Level 9 Finish Line at 4400 (stands on floor Y=584)
+            this.finishFlag = this.physics.add.sprite(4400, 521.5, 'flag_1');
+        } else { // Stage 10: The Ultimate Treasure Chamber (Grand Finale)
+            // Gaps are: (i > 300 && i < 600) || (i > 1000 && i < 1300) || (i > 1700 && i < 2000) || (i > 2500 && i < 2900) || (i > 3400 && i < 3800)
+            
+            // Start platform
+            createWorldPlatform(200, 490, 2);
+
+            // 1. Gauntlet section: breakables, spikes, and cannon
+            createBreakable(450, 552, 'box');
+            createBreakable(450, 520, 'box');
+            createSpike(520, 584);
+
+            createWorldPlatform(600, 400, 4);
+            addAncientCoinsToPlatform(600, 400, 4);
+
+            createBreakable(850, 552, 'box');
+            createCannon(950, 550, 'left');
+
+            // 2. Canopy climbing bridges (walkable trees over spikes)
+            createWalkableTree(1350, 568, 3, 2); // Top is at Y=304
+            createWalkableTree(1600, 568, 4, 3); // Top is at Y=224
+
+            // Checkpoint flag on ground deck
+            createCheckpoint(2000, 521.5);
+
+            // 3. Vault center vertical labyrinth
+            createWorldPlatform(2200, 450, 4);
+            createWorldPlatform(2200, 310, 4);
+            createWorldPlatform(2200, 170, 4);
+            
+            // Guarding enemy and Key in vault center
+            createFierceTooth(2250, 120); // Guards key platform
+
+            // Cannon firing across middle gap
+            createCannon(2050, 276, 'right');
+            createCannon(2800, 276, 'left');
+
+            // 4. Master Key on high platform
+            this.chestKey = this.masterKeys.create(2300, 120, 'master_key');
+            this.chestKey.body.setSize(24, 24);
+
+            // Right side platforms
+            createWorldPlatform(3000, 350, 4);
+            createWalkableTree(3250, 568, 3, 2); // Top is at Y=304
+            
+            // Extra manual spikes at final stretch
+            createSpike(3600, 584);
+            createSpike(3632, 584);
+            createSpike(3664, 584);
+
+            createWorldPlatform(3800, 450, 5);
+
+            // final gold chest stands on the platform
+            this.goldChest = this.goldChests.create(3950, 418, 'chest_idle');
+            this.goldChest.body.setSize(30, 32);
+            this.goldChest.refreshBody();
+
+            // Enemies patrol
+            createCrabby(650, 550);
+            createCrabby(1800, 550);
+            createCrabby(3850, 550);
+
+            // Level 10 Finish Line at 4400 (stands on floor Y=584)
             this.finishFlag = this.physics.add.sprite(4400, 521.5, 'flag_1');
         }
 
@@ -1194,13 +1696,21 @@ class GameScene extends Phaser.Scene {
         this.finishFlag.body.setImmovable(true);
         this.finishFlag.play('flag_anim');
 
-        const startTexture = this.registry.get('swordUnlocked') === true ? 'idle_sword_1' : 'idle_1';
+        let startTexture = this.registry.get('swordUnlocked') === true ? 'idle_sword_1' : 'idle_1';
+        if (this.currentLevel >= 6) {
+            startTexture = 'new_idle_1';
+        }
         this.player = this.physics.add.sprite(this.checkpointX, this.checkpointY, startTexture);
         this.player.setBounce(0.0);
         this.player.setMaxVelocity(250, 1000);
         this.player.setDragX(1200);
-        this.player.body.setSize(16, 22);
-        this.player.body.setOffset(24, 8);
+        if (this.currentLevel >= 6) {
+            this.player.body.setSize(16, 24);
+            this.player.body.setOffset(21, 17);
+        } else {
+            this.player.body.setSize(16, 22);
+            this.player.body.setOffset(24, 8);
+        }
         this.player.setCollideWorldBounds(true);
         this.player.isAttacking = false;
 
@@ -1215,9 +1725,11 @@ class GameScene extends Phaser.Scene {
 
         // Overlaps & Hazards
         this.physics.add.overlap(this.player, this.coins, this.collectCoin, null, this);
+        this.physics.add.overlap(this.player, this.ancientCoins, this.collectAncientCoin, null, this);
         this.physics.add.collider(this.player, this.enemies, this.hitEnemy, null, this);
         this.physics.add.overlap(this.player, this.loots, this.collectLoot, null, this);
         this.physics.add.overlap(this.player, this.chestKeys, this.collectChestKey, null, this);
+        this.physics.add.overlap(this.player, this.masterKeys, this.collectMasterKey, null, this);
 
         if (this.currentLevel === 1 && this.sprintMap) {
             this.physics.add.overlap(this.player, this.sprintMap, this.collectSprintMap, null, this);
@@ -1238,7 +1750,7 @@ class GameScene extends Phaser.Scene {
                 player.setVelocityX(player.x < spike.x ? -150 : 150);
 
                 player.setTint(0xff0000);
-                this.time.delayedCall(1000, () => {
+                this.time.delayedCall(300, () => {
                     this.isTakingDamage = false;
                     player.clearTint();
                 }, [], this);
@@ -1276,7 +1788,11 @@ class GameScene extends Phaser.Scene {
                 this.isLevelComplete = true;
                 this.physics.pause();
                 this.player.setTint(0x00ff00);
-                this.events.emit('levelComplete');
+                if (this.currentLevel === 10) {
+                    this.events.emit('gameVictory');
+                } else {
+                    this.events.emit('levelComplete');
+                }
             }
         }, null, this);
 
@@ -1380,6 +1896,45 @@ class GameScene extends Phaser.Scene {
         coin.disableBody(true, true);
         this.score += 1;
         this.events.emit('updateScore', this.score);
+    }
+
+    collectAncientCoin(player, coin) {
+        coin.disableBody(true, true);
+        this.score += 100; // Mega Coin gives +100!
+        this.events.emit('updateScore', this.score);
+
+        // Show floating pop-up text
+        const text = this.add.text(coin.x, coin.y - 15, '+100 Koin Kuno!', {
+            fontSize: '14px', fill: '#00ff00', fontFamily: 'Arial, sans-serif', fontStyle: 'bold',
+            stroke: '#000', strokeThickness: 3
+        }).setOrigin(0.5);
+
+        this.tweens.add({
+            targets: text,
+            y: text.y - 40,
+            alpha: 0,
+            duration: 1500,
+            onComplete: () => text.destroy()
+        });
+    }
+
+    collectMasterKey(player, key) {
+        key.disableBody(true, true);
+        this.hasKey = true;
+
+        // Show floating pop-up text
+        const text = this.add.text(player.x, player.y - 45, 'Kunci Master Didapatkan!', {
+            fontSize: '14px', fill: '#ffff00', fontFamily: 'Arial, sans-serif', fontStyle: 'bold',
+            stroke: '#000', strokeThickness: 3
+        }).setOrigin(0.5);
+
+        this.tweens.add({
+            targets: text,
+            y: text.y - 50,
+            alpha: 0,
+            duration: 2000,
+            onComplete: () => text.destroy()
+        });
     }
 
     collectSprintMap(player, map) {
@@ -1630,11 +2185,10 @@ class GameScene extends Phaser.Scene {
             if (!this.isTakingDamage) {
                 this.isTakingDamage = true;
                 this.takeDamage();
-                player.setVelocityY(-300);
-                player.setVelocityX(player.x < enemy.x ? -250 : 250);
+                player.setVelocity(0); // No knockback, freeze in place
 
                 player.setTint(0xff0000);
-                this.time.delayedCall(1000, () => {
+                this.time.delayedCall(300, () => {
                     this.isTakingDamage = false;
                     player.clearTint();
                 }, [], this);
@@ -1790,7 +2344,7 @@ class GameScene extends Phaser.Scene {
                     return;
                 }
 
-                if (distX < 200 && distY < 60 && !enemy.isChasing) {
+                if (distX < 200 && distY < 60 && this.player.y <= enemy.y + 50 && !enemy.isChasing) {
                     enemy.isAnticipating = true;
                     enemy.setVelocityX(0);
                     enemy.play('fierce_tooth_anticipation', true);
@@ -1804,7 +2358,7 @@ class GameScene extends Phaser.Scene {
                 }
 
                 if (enemy.isChasing) {
-                    if (distX >= 250) {
+                    if (distX >= 250 || this.player.y > enemy.y + 50) {
                         enemy.isChasing = false;
                         enemy.setVelocityX(enemy.flipX ? 60 : -60);
                     } else {
@@ -1859,11 +2413,17 @@ class GameScene extends Phaser.Scene {
             this.player.setVelocityY(jumpVelocity);
         }
 
-        const suffix = swordUnlocked ? '_sword' : '';
-        const animIdle = 'idle' + suffix;
-        const animRun = 'run' + suffix;
-        const animJump = 'jump' + suffix;
-        const animFall = 'fall' + suffix;
+        let animIdle = swordUnlocked ? 'idle_sword' : 'idle';
+        let animRun = swordUnlocked ? 'run_sword' : 'run';
+        let animJump = swordUnlocked ? 'jump_sword' : 'jump';
+        let animFall = swordUnlocked ? 'fall_sword' : 'fall';
+
+        if (this.currentLevel >= 6) {
+            animIdle = 'new_player_idle';
+            animRun = 'new_player_run';
+            animJump = 'new_player_jump';
+            animFall = 'new_player_fall';
+        }
 
         if (!isGrounded) {
             this.player.anims.timeScale = 1.0;
