@@ -1020,7 +1020,7 @@ class GameScene extends Phaser.Scene {
             tooth.body.setSize(24, 26);
             tooth.body.setOffset(16, 6);
             tooth.enemyType = 'fierce_tooth';
-            tooth.hp = 2;
+            tooth.hp = 1;
             tooth.isChasing = false;
             tooth.isAnticipating = false;
             return tooth;
@@ -1491,6 +1491,8 @@ class GameScene extends Phaser.Scene {
             createFierceTooth(2350, 230); // Guarding key
 
             // Bridge Gap3 (2800-3100)
+            createWorldPlatform(2850, 480, 1); // Stepping stone 1
+            createWorldPlatform(2910, 390, 1); // Stepping stone 2
             createWalkableTree(2950 + 16, 568, 3, 2); // Mast tree to cross the gap and climb
 
             // Right side deck platforms
@@ -1527,6 +1529,7 @@ class GameScene extends Phaser.Scene {
             createWalkableTree(400, 568, 2, 2); // Leaves at Y=384
             createWalkableTree(550, 568, 3, 2); // Leaves at Y=304
             addAncientCoinsToPlatform(535, 240, 2);
+            createWorldPlatform(680, 330, 1); // Stepping stone over Gap1 to platform X=780
  
             // Ground stepping stone to get back up from floor X=700
             createWorldPlatform(700, 470, 1);
@@ -1538,6 +1541,7 @@ class GameScene extends Phaser.Scene {
             createCannon(1000, 346, 'right');
             createWalkableTree(1250, 568, 3, 3); // Leaves at Y=304
             createWalkableTree(1450, 568, 2, 2); // Leaves at Y=384
+            createWalkableTree(1650, 568, 3, 2); // Leaves at Y=304 (Bridges cellah from 1450 to 1800)
             addAncientCoinsToPlatform(1435, 320, 2);
  
             // Ground deck in the middle
@@ -1547,17 +1551,21 @@ class GameScene extends Phaser.Scene {
             createFierceTooth(1900, 330);
  
             // Canopy progression over Gap3 (2200-2600) - Holds key
+            createWorldPlatform(2240, 460, 1); // Stepping stone for tree 2300
             createWalkableTree(2300, 568, 3, 2); // Leaves at Y=304
             createWalkableTree(2480, 568, 4, 0); // Leaves at Y=224 - Holds the Master Key!
+            createWorldPlatform(2650, 290, 1); // Stepping stone from tree 2480 to platform 2750
             
             createWorldPlatform(2750, 350, 4);
             createBreakable(2800, 318, 'box');
             createWorldPlatform(2700, 460, 1); // Stepping stone from ground
  
             // Canopy progression over Gap4 (3200-3700)
+            createWorldPlatform(3260, 460, 1); // Stepping stone for tree 3350
             createWalkableTree(3350, 568, 2, 2); // Leaves at Y=384
             createWalkableTree(3550, 568, 3, 2); // Leaves at Y=304
             addAncientCoinsToPlatform(3535, 240, 2);
+            createWorldPlatform(3740, 350, 1); // Stepping stone from tree 3550 to platform 3850
  
             createWorldPlatform(3850, 430, 5);
  
@@ -1731,6 +1739,8 @@ class GameScene extends Phaser.Scene {
             createCannon(1150, 550, 'left'); // Cannon firing left on floor
  
             // Bridge Gap2 (1300-1700) - canopy style
+            createWorldPlatform(1340, 460, 1); // Stepping stone 1
+            createWorldPlatform(1390, 370, 1); // Stepping stone 2
             createWalkableTree(1420 + 16, 568, 3, 2); // Leaves at Y=304
             createWalkableTree(1580 + 16, 568, 4, 3); // Leaves at Y=224
  
